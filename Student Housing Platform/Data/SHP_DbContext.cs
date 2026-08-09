@@ -25,6 +25,9 @@ namespace Student_Housing_Platform.Data
         public DbSet<HousingImage> HousingImages { get; set; }
         public DbSet<HousingReview> HousingReviews { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         // Universities
         public DbSet<University> Universities { get; set; }
@@ -118,6 +121,19 @@ namespace Student_Housing_Platform.Data
                 b.HasKey(r => r.HousingReviewId);
                 b.HasOne(r => r.Housing).WithMany(h => h.HousingReviews).HasForeignKey(r => r.HousingId).OnDelete(DeleteBehavior.Cascade);
                 b.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Conversation>(b =>
+            {
+                b.HasKey(c => c.ConversationId);
+                b.Property(c => c.Title).HasMaxLength(200);
+            });
+
+            builder.Entity<Message>(b =>
+            {
+                b.HasKey(m => m.MessageId);
+                b.HasOne(m => m.Conversation).WithMany(c => c.Messages).HasForeignKey(m => m.ConversationId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(m => m.Sender).WithMany().HasForeignKey(m => m.SenderId).OnDelete(DeleteBehavior.Cascade);
             });
 
             // Favorite configuration

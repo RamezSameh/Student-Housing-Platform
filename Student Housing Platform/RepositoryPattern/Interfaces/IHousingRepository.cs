@@ -26,6 +26,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
         Task<int> CreateAsync(CreateHousingDto dto, string ownerId, CancellationToken cancellationToken = default);
         Task<bool> UpdateAsync(int id, UpdateHousingDto dto, string userId);
         Task<bool> DeleteAsync(int id, string userId);
+        Task<IEnumerable<HousingListItemDto>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Student_Housing_Platform.Dtos.HousingDtos.CompareHousingDto>> GetCompareByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
         Task AddHousingImageAsync(int housingId, string imageUrl, string publicId, bool isPrimary = false);
         Task<bool> DeleteHousingImageAsync(int imageId);
         Task<string?> GetOwnerIdAsync(int housingId);

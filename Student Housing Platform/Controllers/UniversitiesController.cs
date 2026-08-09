@@ -40,8 +40,8 @@ namespace Student_Housing_Platform.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var dto = await _repo.GetByIdAsync(id);
-            if (dto == null) return NotFound(new { success = false, message = "University not found" });
-            return Ok(new { success = true, message = "University retrieved successfully", data = dto });
+            if (dto == null) return NotFound(new Dtos.Common.ApiResponse<object> { Success = false, Message = "University not found" });
+            return Ok(new Dtos.Common.ApiResponse<UniversityDto> { Success = true, Message = "University retrieved successfully", Data = dto });
         }
 
         // POST: /api/universities

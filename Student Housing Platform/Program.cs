@@ -5,6 +5,9 @@ using Student_Housing_Platform.Services.CloudinaryService;
 using Student_Housing_Platform.Services.TokenService;
 using Student_Housing_Platform.Data;
 using Student_Housing_Platform.Services.Distance;
+using Student_Housing_Platform.Extensions;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -59,7 +62,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddControllers();
+// FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Student_Housing_Platform.Validators.CreateHousingDtoValidator>();
 builder.Services.AddEndpointsApiExplorer();
+// SignalR
+builder.Services.AddSignalR();
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -110,6 +118,7 @@ builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 // Housing reviews repository
 builder.Services.AddScoped<IHousingReviewRepository, HousingReviewRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // University repository and distance service
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
@@ -118,10 +127,20 @@ builder.Services.AddSingleton<IDistanceCalculator, DistanceCalculator>();
 builder.Services.AddScoped<IHousingRepository, HousingRepository>();
 // Recommendation service
 builder.Services.AddScoped<Student_Housing_Platform.Services.Recommendation.IRecommendationService, Student_Housing_Platform.Services.Recommendation.RecommendationService>();
+// Admin service
+builder.Services.AddScoped<Student_Housing_Platform.Services.Admin.IAdminService, Student_Housing_Platform.Services.Admin.AdminService>();
+// Message repository (for SignalR persistence)
+builder.Services.AddScoped<Student_Housing_Platform.RepositoryPattern.Interfaces.IMessageRepository, Student_Housing_Platform.RepositoryPattern.Repositories.MessageRepository>();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Use global exception handling middleware
+app.UseGlobalExceptionHandling();
+// Rate limiting
+app.UseMiddleware<Student_Housing_Platform.Middleware.RateLimitingMiddleware>();
 
 // seeding default admin user and roles
 using (var scope = app.Services.CreateScope())
@@ -190,6 +209,8 @@ using (var scope = app.Services.CreateScope())
 
     // Seed universities (will skip if data exists)
     await SeedData.EnsureSeedDataAsync(app.Services);
+    // Seed sample users, housings, amenities
+    await Student_Housing_Platform.Data.SampleSeed.EnsureSampleDataAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.
@@ -203,6 +224,8 @@ app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+// Map SignalR hubs
+app.MapHub<Student_Housing_Platform.Hubs.ChatHub>("/hubs/chat");
 app.MapControllers();
 app.MapGet("/", () => "API is running...");
 app.Run();

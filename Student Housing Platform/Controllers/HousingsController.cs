@@ -27,14 +27,23 @@ namespace Student_Housing_Platform.Controllers
         public async Task<IActionResult> GetNearby([FromQuery] int universityId, [FromQuery] double radius = 2, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var result = await _repo.GetNearbyAsync(universityId, radius, page, pageSize);
-            var response = new
+            var response = new Dtos.Common.ApiResponse<object>
             {
-                items = result.Items,
-                page = result.Page,
-                pageSize = result.PageSize,
-                totalCount = result.TotalCount,
-                totalPages = result.TotalPages
+                Success = true,
+                Data = new { items = result.Items, page = result.Page, pageSize = result.PageSize, totalCount = result.TotalCount, totalPages = result.TotalPages }
             };
+            return Ok(response);
+        }
+
+        // GET: /api/housings/compare?ids=1,2,3
+        [HttpGet("compare")]
+        public async Task<IActionResult> Compare([FromQuery] string ids)
+        {
+            if (string.IsNullOrWhiteSpace(ids)) return BadRequest("ids required");
+            var idList = ids.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => int.TryParse(s, out var id) ? id : 0).Where(i => i > 0).ToList();
+            if (!idList.Any()) return BadRequest("invalid ids");
+            var items = await _repo.GetCompareByIdsAsync(idList);
+            var response = new Dtos.Common.ApiResponse<object> { Success = true, Data = items };
             return Ok(response);
         }
 

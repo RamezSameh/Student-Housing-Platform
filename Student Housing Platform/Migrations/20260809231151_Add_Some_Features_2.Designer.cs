@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Student_Housing_Platform.Data;
@@ -12,9 +13,11 @@ using Student_Housing_Platform.Data;
 namespace Student_Housing_Platform.Migrations
 {
     [DbContext(typeof(SHP_DbContext))]
-    partial class SHP_DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260809231151_Add_Some_Features_2")]
+    partial class Add_Some_Features_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -305,27 +308,6 @@ namespace Student_Housing_Platform.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("Student_Housing_Platform.Models.Conversation", b =>
-                {
-                    b.Property<int>("ConversationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConversationId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("ConversationId");
-
-                    b.ToTable("Conversations");
-                });
-
             modelBuilder.Entity("Student_Housing_Platform.Models.Favorite", b =>
                 {
                     b.Property<string>("UserId")
@@ -542,71 +524,6 @@ namespace Student_Housing_Platform.Migrations
                     b.HasIndex("HousingId");
 
                     b.ToTable("HousingRooms");
-                });
-
-            modelBuilder.Entity("Student_Housing_Platform.Models.Message", b =>
-                {
-                    b.Property<int>("MessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SenderId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("MessageId");
-
-                    b.HasIndex("ConversationId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("Student_Housing_Platform.Models.Notification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Payment", b =>
@@ -988,36 +905,6 @@ namespace Student_Housing_Platform.Migrations
                     b.Navigation("Housing");
                 });
 
-            modelBuilder.Entity("Student_Housing_Platform.Models.Message", b =>
-                {
-                    b.HasOne("Student_Housing_Platform.Models.Conversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Student_Housing_Platform.Models.ApplicationUser", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("Student_Housing_Platform.Models.Notification", b =>
-                {
-                    b.HasOne("Student_Housing_Platform.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Student_Housing_Platform.Models.Payment", b =>
                 {
                     b.HasOne("Student_Housing_Platform.Models.Booking", "Booking")
@@ -1089,11 +976,6 @@ namespace Student_Housing_Platform.Migrations
 
                     b.Navigation("Review")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Student_Housing_Platform.Models.Conversation", b =>
-                {
-                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Housing", b =>

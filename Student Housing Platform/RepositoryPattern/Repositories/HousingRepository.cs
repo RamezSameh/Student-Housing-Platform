@@ -157,6 +157,64 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             };
         }
 
+        public async Task<IEnumerable<HousingListItemDto>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
+        {
+            var list = await _context.Housings.AsNoTracking()
+                .Where(h => ids.Contains(h.HousingId))
+                .Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City })
+                .ToListAsync(cancellationToken);
+
+            var housingIds = list.Select(i => i.HousingId).ToList();
+            var ratings = await _context.HousingReviews
+                .Where(r => housingIds.Contains(r.HousingId))
+                .GroupBy(r => r.HousingId)
+                .Select(g => new { HousingId = g.Key, Avg = g.Average(x => x.Rating) })
+                .ToListAsync(cancellationToken);
+
+            var mapped = list.Select(item => new HousingListItemDto
+            {
+                Id = item.HousingId,
+                Title = item.Title,
+                Price = item.Price,
+                DistanceKm = 0,
+                Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
+                IsVerified = item.IsVerified,
+                City = item.City
+            }).ToList();
+
+            return mapped;
+        }
+
+        public async Task<IEnumerable<Student_Housing_Platform.Dtos.HousingDtos.CompareHousingDto>> GetCompareByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
+        {
+            var list = await _context.Housings.AsNoTracking()
+                .Where(h => ids.Contains(h.HousingId))
+                .Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.IsFurnished, h.IsAvailable })
+                .ToListAsync(cancellationToken);
+
+            var housingIds = list.Select(i => i.HousingId).ToList();
+            var ratings = await _context.HousingReviews
+                .Where(r => housingIds.Contains(r.HousingId))
+                .GroupBy(r => r.HousingId)
+                .Select(g => new { HousingId = g.Key, Avg = g.Average(x => x.Rating) })
+                .ToListAsync(cancellationToken);
+
+            var results = list.Select(item => new Student_Housing_Platform.Dtos.HousingDtos.CompareHousingDto
+            {
+                Id = item.HousingId,
+                Title = item.Title,
+                Price = item.Price,
+                DistanceKm = 0, // client can request distance if needed
+                Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
+                RoomTypes = string.Empty,
+                Amenities = string.Empty,
+                IsFurnished = item.IsFurnished,
+                IsAvailable = item.IsAvailable
+            }).ToList();
+
+            return results;
+        }
+
         public async Task<int> CreateAsync(CreateHousingDto dto, string ownerId, CancellationToken cancellationToken = default)
         {
             var entity = new Housing
