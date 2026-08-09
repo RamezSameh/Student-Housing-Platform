@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Student_Housing_Platform.Models;
-using System.Reflection.Emit;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Student_Housing_Platform.Data
 {
@@ -9,12 +9,26 @@ namespace Student_Housing_Platform.Data
         public SHP_DbContext(DbContextOptions<SHP_DbContext> options) : base(options)
         {
         }
+
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<RoomType> RoomTypes { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<RoomImage> RoomImages { get; set; }
+
+        // Housings
+        public DbSet<Housing> Housings { get; set; }
+        public DbSet<HousingRoom> HousingRooms { get; set; }
+        public DbSet<Amenity> Amenities { get; set; }
+        public DbSet<HousingAmenity> HousingAmenities { get; set; }
+        public DbSet<HousingImage> HousingImages { get; set; }
+        public DbSet<HousingReview> HousingReviews { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
+
+        // Universities
+        public DbSet<University> Universities { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -42,137 +56,81 @@ namespace Student_Housing_Platform.Data
             builder.Entity<Booking>()
                 .HasOne(b => b.Review).WithOne(r => r.Booking)
                 .HasForeignKey<Review>(r => r.BookingId)
-                .OnDelete(DeleteBehavior.Restrict); //DeleteBehavior.Restrict: يمنع حذف حجز (Booking) إذا كان مرتبطاً بريفيو (Review). هذا يحافظ على سجلاتك.
+                .OnDelete(DeleteBehavior.Restrict); //DeleteBehavior.Restrict: prevents deleting Booking if related Review exists
 
             // user - review one to many
             builder.Entity<ApplicationUser>()
                 .HasMany(u => u.Reviews)
                 .WithOne(r => r.User)
                 .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Cascade); //DeleteBehavior.Cascade: إذا تم حذف مستخدم (User)، يتم حذف جميع الريفيوهات المرتبطة به تلقائياً.
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<RoomImage>()
                 .HasOne(ri => ri.Room).WithMany(r => r.RoomImages)
-                .HasForeignKey(ri => ri.RoomId).OnDelete(DeleteBehavior.Cascade); // عند حذف غرفة، يتم حذف جميع الصور المرتبطة بها تلقائياً.
+                .HasForeignKey(ri => ri.RoomId).OnDelete(DeleteBehavior.Cascade);
 
+            // University configuration
+            builder.Entity<University>(b =>
+            {
+                b.HasKey(u => u.UniversityId);
+                b.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                b.HasIndex(u => u.City);
+                b.HasIndex(u => u.Name);
+            });
 
-            /*
-            builder.Entity<RoomType>().HasData(
-                new RoomType
-                {
-                    RoomTypeId = 1,
-                    Name = "Single Room",
-                    Description = "Room suitable for one student.",
-                    Capacity = 1,
-                    PricePerNight = 150
-                },
+            // Housing configuration
+            builder.Entity<Housing>(b =>
+            {
+                b.HasKey(h => h.HousingId);
+                b.HasOne(h => h.Owner).WithMany().HasForeignKey(h => h.OwnerId).OnDelete(DeleteBehavior.Restrict);
+                b.HasIndex(h => h.OwnerId);
+                b.HasIndex(h => h.City);
+                b.Property(h => h.Price).HasColumnType("decimal(18,2)");
+            });
 
-                new RoomType
-                {
-                    RoomTypeId = 2,
-                    Name = "Double Room",
-                    Description = "Room suitable for two students.",
-                    Capacity = 2,
-                    PricePerNight = 250
-                },
+            builder.Entity<HousingRoom>(b =>
+            {
+                b.HasKey(r => r.RoomId);
+                b.HasOne(r => r.Housing).WithMany(h => h.Rooms).HasForeignKey(r => r.HousingId).OnDelete(DeleteBehavior.Cascade);
+            });
 
-                new RoomType
-                {
-                    RoomTypeId = 3,
-                    Name = "Triple Room",
-                    Description = "Room suitable for three students.",
-                    Capacity = 3,
-                    PricePerNight = 350
-                },
+            builder.Entity<Amenity>(b =>
+            {
+                b.HasKey(a => a.AmenityId);
+                b.HasIndex(a => a.Name);
+            });
 
-                new RoomType
-                {
-                    RoomTypeId = 4,
-                    Name = "Quad Room",
-                    Description = "Room suitable for four students.",
-                    Capacity = 4,
-                    PricePerNight = 450
-                }
-            );
-            */
-            /*
-            builder.Entity<Room>().HasData(
+            builder.Entity<HousingAmenity>(b =>
+            {
+                b.HasKey(ha => ha.Id);
+                b.HasOne(ha => ha.Housing).WithMany(h => h.HousingAmenities).HasForeignKey(ha => ha.HousingId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(ha => ha.Amenity).WithMany(a => a.HousingAmenities).HasForeignKey(ha => ha.AmenityId).OnDelete(DeleteBehavior.Cascade);
+            });
 
-                new Room
-                {
-                RoomId = 1,
-                RoomNumber = "101",
-                Floor = 1,
-                status = RoomStatus.Available,
-                RoomTypeId = 1
-                },
+            builder.Entity<HousingImage>(b =>
+            {
+                b.HasKey(i => i.Id);
+                b.HasOne(i => i.Housing).WithMany(h => h.Images).HasForeignKey(i => i.HousingId).OnDelete(DeleteBehavior.Cascade);
+            });
 
-                new Room
-                {
-                RoomId = 2,
-                RoomNumber = "102",
-                Floor = 1,
-                status = RoomStatus.Available,
-                RoomTypeId = 1
-                },
+            builder.Entity<HousingReview>(b =>
+            {
+                b.HasKey(r => r.HousingReviewId);
+                b.HasOne(r => r.Housing).WithMany(h => h.HousingReviews).HasForeignKey(r => r.HousingId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
 
-                new Room
-                {
-                RoomId = 3,
-                RoomNumber = "103",
-                Floor = 1,
-                status = RoomStatus.Occupied,
-                RoomTypeId = 2
-                },
+            // Favorite configuration
+            builder.Entity<Favorite>(b =>
+            {
+                b.HasKey(f => new { f.UserId, f.HousingId });
+                b.HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(f => f.Housing).WithMany().HasForeignKey(f => f.HousingId).OnDelete(DeleteBehavior.Cascade);
+                b.HasIndex(f => new { f.UserId, f.HousingId }).IsUnique();
+            });
 
-                new Room
-                {
-                RoomId = 4,
-                RoomNumber = "201",
-                Floor = 2,
-                status = RoomStatus.Available,
-                RoomTypeId = 2
-                },
-
-                new Room
-                {
-                RoomId = 5,
-                RoomNumber = "202",
-                Floor = 2,
-                status = RoomStatus.Available,
-                RoomTypeId = 3
-                },
-
-                new Room
-                {
-                RoomId = 6,
-                RoomNumber = "203",
-                Floor = 2,
-                status = RoomStatus.UnderMaintenance,
-                RoomTypeId = 3
-                },
-
-                new Room
-                {
-                RoomId = 7,
-                RoomNumber = "301",
-                Floor = 3,
-                status = RoomStatus.Available,
-                RoomTypeId = 4
-                },
-
-                new Room
-                {
-                RoomId = 8,
-                RoomNumber = "302",
-                Floor = 3,
-                status = RoomStatus.Available,
-                RoomTypeId = 4
-                }
-            );*/
-
+            // (existing seed/data comments retained)
         }
     }
-    
 }
 

@@ -11,6 +11,45 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         {
             _context = context;
         }
+        public async Task<Booking> CreateHousingBookingAsync(CreateHousingBookingDto createHousingBookingDto, string userId)
+        {
+            var room = await _context.HousingRooms.FirstOrDefaultAsync(r => r.RoomId == createHousingBookingDto.HousingRoomId);
+            if (room == null)
+            {
+                throw new KeyNotFoundException("Housing room not found");
+            }
+
+            // check availability: ensure no overlapping confirmed/approved bookings for same housing room
+            var overlap = await _context.Bookings.AnyAsync(b => b.HousingRoomId == room.RoomId &&
+                !(createHousingBookingDto.CheckOut <= b.CheckInDate || createHousingBookingDto.CheckIn >= b.CheckOutDate) &&
+                b.bookingStatus != BookingStatus.Cancelled);
+            if (overlap)
+            {
+                throw new InvalidOperationException("Selected room is not available for the requested dates.");
+            }
+
+            var numberOfNights = (createHousingBookingDto.CheckOut - createHousingBookingDto.CheckIn).Days;
+            if (numberOfNights <= 0)
+                throw new InvalidOperationException("Check-out date must be after check-in date");
+
+            var totalAmount = room.Price * numberOfNights;
+
+            var booking = new Booking
+            {
+                HousingRoomId = room.RoomId,
+                HousingId = room.HousingId,
+                UserId = userId,
+                CheckInDate = createHousingBookingDto.CheckIn,
+                CheckOutDate = createHousingBookingDto.CheckOut,
+                BookingDate = DateTime.UtcNow,
+                TotalAmount = totalAmount,
+                bookingStatus = BookingStatus.Pending
+            };
+
+            await _context.Bookings.AddAsync(booking);
+            await _context.SaveChangesAsync();
+            return booking;
+        }
         public async Task<Booking> CreateBookingAsync(CreateBookingDto createBookingDto, string UserId)
         {
             var room = await _context.Rooms

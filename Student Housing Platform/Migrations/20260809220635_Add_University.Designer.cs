@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Student_Housing_Platform.Data;
 
@@ -11,9 +12,11 @@ using Student_Housing_Platform.Data;
 namespace Student_Housing_Platform.Migrations
 {
     [DbContext(typeof(SHP_DbContext))]
-    partial class SHP_DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260809220635_Add_University")]
+    partial class Add_University
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -20,6 +20,36 @@ namespace Student_Housing_Platform.Controllers
             _bookingRepository = bookingRepository;
             _roomRepository = roomRepository;
         }
+
+        // POST: /api/bookings/housing
+        [HttpPost("housing")]
+        public async Task<IActionResult> CreateHousingBooking([FromBody] CreateHousingBookingDto bookingDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized("User ID not found in token.");
+            try
+            {
+                var newBooking = await _bookingRepository.CreateHousingBookingAsync(bookingDto, userId);
+                var bookingDtoResponse = await _bookingRepository.GetBookingByIdAsync(newBooking.BookingId, userId);
+                return Ok(bookingDtoResponse);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An unexpected error occurred while creating the booking.");
+            }
+        }
   
        
         [HttpPost] // POST: /api/bookings

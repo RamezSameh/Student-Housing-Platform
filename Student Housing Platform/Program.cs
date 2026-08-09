@@ -3,12 +3,15 @@ using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
 using Student_Housing_Platform.Services.CloudinaryService;
 using Student_Housing_Platform.Services.TokenService;
-using Student_Housing_Platform.RepositoryPattern.Interfaces;
-using Student_Housing_Platform.RepositoryPattern.Repositories;
-using Student_Housing_Platform.Services.CloudinaryService;
-using Student_Housing_Platform.Services.TokenService;
+using Student_Housing_Platform.Data;
+using Student_Housing_Platform.Services.Distance;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,23 +20,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // telling the app to use the ApplicationUser and IdentityRole for identity management
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<SHP_DbContext>().AddDefaultTokenProviders(); // here to store all the user information in the database SHP_DbContext
+    .AddEntityFrameworkStores<SHP_DbContext>().AddDefaultTokenProviders();
 
-// add DbContext service to the application
+// add DbContext service to the application (enable NetTopologySuite for spatial)
 builder.Services.AddDbContext<SHP_DbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sql => sql.UseNetTopologySuite()));
 
 //bind the cloudinary settings from appsettings.json
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(CloudinarySettings.SectionName));
 
-
 // bind the admin settings from appsettings.json
-
-builder.Services.Configure<AdminSettings>(
-    builder.Configuration.GetSection(AdminSettings.SectionName));
-
+builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection(AdminSettings.SectionName));
 
 // bind the JWT settings from appsettings.json
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection(JWTSettings.SectionName));
@@ -42,14 +39,13 @@ builder.Configuration.GetSection(JWTSettings.SectionName).Bind(jwtSettings);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; //scheme for 401 error
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-//الجزء ده علشان اعرفه مكان ال key و ازاي هيعمل validation للتوكن
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
-    options.RequireHttpsMetadata = false; // خليه false في التطوير بس
+    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuer = true,
@@ -57,31 +53,24 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings.ValidAudience,
         ValidIssuer = jwtSettings.ValidIssuer,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
-
         RoleClaimType = ClaimTypes.Role,
         NameClaimType = ClaimTypes.Name
     };
 });
-//---------------------------------------------------------------------------
-builder.Services.AddControllers();// this line is for directing the request to controllers
-builder.Services.AddEndpointsApiExplorer(); // <-- بديل/أفضل من AddOpenApi
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    // 1. تعريف نظام الأمان (Security Definition)
-    // هنا بنقول لـ Swagger: "إحنا عندنا نظام أمان اسمه 'Bearer'"
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Name = "Authorization", // اسم الـ Header اللي هنبعت فيه التوكن
+        Name = "Authorization",
         Description = "Please enter token (JWT) with Bearer prefix: Bearer {token}",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
         Scheme = "Bearer",
         BearerFormat = "JWT"
-
     });
-    // 2. تطبيق نظام الأمان ده
-    // هنا بنقول لـ Swagger: "اعرض أيقونة القفل 🔒 على كل الـ Endpoints
-    // وخليهم يستخدموا نظام 'Bearer' اللي عرفناه فوق"
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -98,8 +87,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-// to enable CORS policy for the frontend application
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -111,27 +99,31 @@ builder.Services.AddCors(options =>
                   .AllowCredentials();
         });
 });
+
+// DI registrations
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+// Housing reviews repository
+builder.Services.AddScoped<IHousingReviewRepository, HousingReviewRepository>();
+
+// University repository and distance service
+builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
+builder.Services.AddSingleton<IDistanceCalculator, DistanceCalculator>();
+// Housing repository
+builder.Services.AddScoped<IHousingRepository, HousingRepository>();
+// Recommendation service
+builder.Services.AddScoped<Student_Housing_Platform.Services.Recommendation.IRecommendationService, Student_Housing_Platform.Services.Recommendation.RecommendationService>();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-/*
-// Apply EF Core migrations before seeding
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
 
-    var dbContext = services.GetRequiredService<SHP_DbContext>();
-
-    await dbContext.Database.MigrateAsync();
-}
-*/
-// seeding default admin user 
+// seeding default admin user and roles
 using (var scope = app.Services.CreateScope())
 {
     var Services = scope.ServiceProvider;
@@ -140,8 +132,8 @@ using (var scope = app.Services.CreateScope())
     var adminSettings = Services.GetRequiredService<IOptions<AdminSettings>>().Value;
     var logger = Services.GetRequiredService<ILogger<Program>>();
 
-    //create roles
-    string[] roles = { "Admin", "Customer" };
+    //create roles (Admin, Student, Owner, Customer)
+    string[] roles = { "Admin", "Student", "Owner", "Customer" };
     foreach (var role in roles)
     {
         var roleExist = await roleManager.RoleExistsAsync(role);
@@ -158,6 +150,7 @@ using (var scope = app.Services.CreateScope())
             }
         }
     }
+
     //create default admin credentials
     if (!string.IsNullOrEmpty(adminSettings.Email) && !string.IsNullOrEmpty(adminSettings.Password))
     {
@@ -171,7 +164,7 @@ using (var scope = app.Services.CreateScope())
                 UserName = adminSettings.Email,
                 Email = adminSettings.Email,
                 EmailConfirmed = true,
-                FirstName="Admin",
+                FirstName = "Admin",
                 LastName = "test"
             };
             var createAdminResult = await userManager.CreateAsync(newAdminUser, adminSettings.Password);
@@ -184,7 +177,6 @@ using (var scope = app.Services.CreateScope())
             {
                 logger.LogError($"Error creating default admin user: {string.Join(", ", createAdminResult.Errors.Select(e => e.Description))}");
             }
-
         }
         else
         {
@@ -196,33 +188,21 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
+    // Seed universities (will skip if data exists)
+    await SeedData.EnsureSeedDataAsync(app.Services);
 }
-
-
-
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(); // <-- بيشغل Swagger
-    app.UseSwaggerUI(); // <-- بيعمل صفحة الـ UI لـ Swagger
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
-// this middleware to redirect http request to https
 app.UseHttpsRedirection();
-
-// ensure routing is set up (explicit; optional in minimal apps but recommended)
 app.UseRouting();
-
-// this middleware to use the CORS policy
 app.UseCors("AllowFrontend");
-// --- 6. إضافة الـ Authentication (مهم جداً!) ---
-app.UseAuthentication(); // <-- لازم ييجي قبل الـ Authorization // لان اصلا الطبيعي انا بشوف انت مسموح تسنخدم السيستم ولا لا
-
-// this middleware to use authorization verification of user roles
+app.UseAuthentication();
 app.UseAuthorization();
-// this line is for directing the request to controllers
 app.MapControllers();
 app.MapGet("/", () => "API is running...");
 app.Run();

@@ -20,16 +20,24 @@ namespace Student_Housing_Platform.Models
 
         // --------------- Relationships ----------------
         [Required]
-        public string UserId { get; set; } 
+        public string UserId { get; set; }
 
         [ForeignKey("UserId")]
         public ApplicationUser User { get; set; } // many bookings by one user
 
-        [Required]
-        public int RoomId { get; set; }
-
+        // legacy Room bookings (existing short-stay model)
+        public int? RoomId { get; set; }
         [ForeignKey("RoomId")]
-        public Room Room { get; set; } // one room can have many bookings ( the history of room booking )
+        public Room? Room { get; set; }
+
+        // new Housing booking support
+        public int? HousingId { get; set; }
+        [ForeignKey("HousingId")]
+        public Housing? Housing { get; set; }
+
+        public int? HousingRoomId { get; set; }
+        [ForeignKey("HousingRoomId")]
+        public HousingRoom? HousingRoom { get; set; }
 
         public Payment Payment { get; set; } //one booking to one payment
 
