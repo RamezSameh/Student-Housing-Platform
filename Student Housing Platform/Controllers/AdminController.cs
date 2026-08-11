@@ -88,16 +88,23 @@ namespace Student_Housing_Platform.Controllers
 
         // Housing methods
         [HttpPost("housings")]
-        public async Task<IActionResult> AddHousing([FromBody] CreateHousingDto housingDto, ApplicationUser owner)
+        public async Task<IActionResult> AddHousing([FromBody] CreateHousingDto housingDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            // Get current logged-in user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); if (string.IsNullOrEmpty(userId)) { return Unauthorized(new { Message = "User ID not found in token." }); }
             var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(housingDto.HousingTypeName);
             if (housingType == null)
             {
                 return BadRequest(new { Message = "Invalid HousingType. Housing type does not exist." });
+            }
+            // Get owner from database
+            var owner = await _userManager.FindByIdAsync(userId); 
+            if (owner == null) { 
+                return Unauthorized(new { Message = "Owner not found." }); 
             }
             var newHousing = new CreateHousingDto
             {
@@ -114,22 +121,31 @@ namespace Student_Housing_Platform.Controllers
                 IsAvailable = housingDto.IsAvailable,
                 OwnerId = owner.Id
             };
-            await _housingRepository.CreateAsync(newHousing , owner.Id);
+            await _housingRepository.CreateAsync(newHousing ,owner.Id);
             return Ok(new { Message = "Housing added successfully." });
         }
         [HttpPut("housings/{id}")]
-        public async Task<IActionResult> UpdateHousing(int id, [FromBody] UpdateHousingDto updateHousingDto , ApplicationUser user)
+        public async Task<IActionResult> UpdateHousing(int id, [FromBody] UpdateHousingDto updateHousingDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            // Get current logged-in user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); if (string.IsNullOrEmpty(userId)) { return Unauthorized(new { Message = "User ID not found in token." }); }
+
             var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(updateHousingDto.HousingTypeName);
             if (housingType == null)
             {
                 return BadRequest(new { Message = "Invalid HousingTypeId . Housing type does not exist." });
             }
-            await _housingRepository.UpdateAsync(id, updateHousingDto , user.Id);
+            // Get owner from database
+            var owner = await _userManager.FindByIdAsync(userId);
+            if (owner == null)
+            {
+                return Unauthorized(new { Message = "Owner not found." });
+            }
+            await _housingRepository.UpdateAsync(id, updateHousingDto , owner.Id);
             return Ok(new { Message = "Housing updated successfully." });
 
         }
