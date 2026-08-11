@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Student_Housing_Platform.Dtos.AccountDtos;
-using Student_Housing_Platform.Dtos.RoomDtos;
-using Student_Housing_Platform.Dtos.RoomImageDtos;
+using Student_Housing_Platform.Dtos.HousingDtos;
 using Student_Housing_Platform.Dtos.RoomTypeDtos;
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
@@ -19,121 +18,131 @@ namespace Student_Housing_Platform.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly IRoomRepository _roomRepository;
-        private readonly IRoomTypeRepository _roomTypeRepository;
+        private readonly IHousingRepository _housingRepository;
+        private readonly IHousingTypeRepository _housingTypeRepository;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AdminController> _logger;
-        public AdminController(IRoomTypeRepository roomTypeRepository, IRoomRepository roomRepository,
+        public AdminController(IHousingTypeRepository housingTypeRepository, IHousingRepository housingRepository,
             ICloudinaryService cloudinaryService, UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager, ILogger<AdminController> logger, IBookingRepository bookingRepository)
         {
-            _roomTypeRepository = roomTypeRepository;
-            _roomRepository = roomRepository;
+            _housingTypeRepository = housingTypeRepository;
+            _housingRepository = housingRepository;
             _cloudinaryService = cloudinaryService;
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
             _bookingRepository=bookingRepository;
         }
-        [HttpPost("room-types")] // POST: api/Admin/room-types
-        public async Task<IActionResult> AddRoomType([FromBody] CreateRoomTypeDto createRoomTypeDto)
+        [HttpPost("housing-types")] // POST: api/Admin/housing-types
+        public async Task<IActionResult> AddHousingType([FromBody] CreateHousingTypeDto createHousingTypeDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            await _roomTypeRepository.AddRoomTypeAsync(createRoomTypeDto);
-            return Ok(new { Message = "Room type added successfully." });
+            await _housingTypeRepository.AddHousingTypeAsync(createHousingTypeDto);
+            return Ok(new { Message = "Housing type added successfully." });
         }
-        [HttpGet("room-types")]
-        public async Task<IActionResult> GetAllRoomTypes()
+        [HttpGet("housing-types")]
+        public async Task<IActionResult> GetAllHousingTypes()
         {
-            var roomTypes = await _roomTypeRepository.GetAllRoomTypesAsync();
-            return Ok(roomTypes);
+            var housingTypes = await _housingTypeRepository.GetAllHousingTypesAsync();
+            return Ok(housingTypes);
 
         }
-        [HttpGet("room-types/{id}")]
-        public async Task<IActionResult> GetRoomTypeById(int id)
+        [HttpGet("housing-types/{name}")]
+        public async Task<IActionResult> GetHousingTypeByName(string name)
         {
-            var roomType = await _roomTypeRepository.GetRoomTypeDtoByIdAsync(id);
-            if (roomType == null)
+            var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(name);
+            if (housingType == null)
             {
-                return NotFound(new { Message = "Room type not found." });
+                return NotFound(new { Message = "Housing type not found." });
             }
-            return Ok(roomType);
+            return Ok(housingType);
         }
-        [HttpPut("room-types/{id}")]
-        public async Task<IActionResult> UpdateRoomType(int id, [FromBody] CreateRoomTypeDto createRoomTypeDto)
+        [HttpPut("housing-types/{id}")]
+        public async Task<IActionResult> UpdateHousingType(int id, [FromBody] CreateHousingTypeDto createHousingTypeDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _roomTypeRepository.UpdateRoomTypeAsync(id, createRoomTypeDto);
-            return Ok(new { Message = "Room type updated successfully." });
+            await _housingTypeRepository.UpdateHousingTypeAsync(id, createHousingTypeDto);
+            return Ok(new { Message = "Housing type updated successfully." });
         }
-        [HttpDelete("room-types/{id}")]
-        public async Task<IActionResult> DeleteRoomType(int id)
+        [HttpDelete("housing-types/{id}")]
+        public async Task<IActionResult> DeleteHousingType(int id)
         {
-            var result = await _roomTypeRepository.DeleteRoomTypeAsync(id);
+            var result = await _housingTypeRepository.DeleteHousingTypeAsync(id);
             if (!result)
             {
-                return NotFound(new { Message = "Room type not found." });
+                return NotFound(new { Message = "Housing type not found." });
             }
-            return Ok(new { Message = "Room type deleted successfully." });
+            return Ok(new { Message = "Housing type deleted successfully." });
         }
-        // Room methods
-        [HttpPost("rooms")]
-        public async Task<IActionResult> AddRoom([FromBody] CreateRoomDto roomDto)
+
+
+        // Housing methods
+        [HttpPost("housings")]
+        public async Task<IActionResult> AddHousing([FromBody] CreateHousingDto housingDto, ApplicationUser owner)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var roomType = await _roomTypeRepository.GetRoomEntityByIdAsync(roomDto.RoomTypeId);
-            if (roomType == null)
+            var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(housingDto.HousingTypeName);
+            if (housingType == null)
             {
-                return BadRequest(new { Message = "Invalid RoomTypeId. Room type does not exist." });
+                return BadRequest(new { Message = "Invalid HousingType. Housing type does not exist." });
             }
-            var newRoom = new Room
+            var newHousing = new CreateHousingDto
             {
-                RoomNumber = roomDto.RoomNumber,
-                Floor = roomDto.Floor,
-                status = roomDto.status,
-                RoomTypeId = roomDto.RoomTypeId
+                Title = housingDto.Title,
+                Description = housingDto.Description,
+                Address = housingDto.Address,
+                City = housingDto.City,
+                Latitude = housingDto.Latitude,
+                Longitude = housingDto.Longitude,
+                Price = housingDto.Price,
+                HousingTypeName = housingDto.HousingTypeName,
+                GenderType = housingDto.GenderType,
+                IsFurnished = housingDto.IsFurnished,
+                IsAvailable = housingDto.IsAvailable,
+                OwnerId = owner.Id
             };
-            await _roomRepository.AddRoomAsync(newRoom);
-            return Ok(new { Message = "Room added successfully." });
+            await _housingRepository.CreateAsync(newHousing , owner.Id);
+            return Ok(new { Message = "Housing added successfully." });
         }
-        [HttpPut("rooms/{id}")]
-        public async Task<IActionResult> UpdateRoom(int id, [FromBody] UpdateRoomDto updateRoomDto)
+        [HttpPut("housings/{id}")]
+        public async Task<IActionResult> UpdateHousing(int id, [FromBody] UpdateHousingDto updateHousingDto , ApplicationUser user)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var roomType = await _roomTypeRepository.GetRoomEntityByIdAsync(updateRoomDto.RoomTypeId);
-            if (roomType == null)
+            var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(updateHousingDto.HousingTypeName);
+            if (housingType == null)
             {
-                return BadRequest(new { Message = "Invalid RoomTypeId. Room type does not exist." });
+                return BadRequest(new { Message = "Invalid HousingTypeId . Housing type does not exist." });
             }
-            await _roomRepository.UpdateRoomAsync(id, updateRoomDto);
-            return Ok(new { Message = "Room updated successfully." });
+            await _housingRepository.UpdateAsync(id, updateHousingDto , user.Id);
+            return Ok(new { Message = "Housing updated successfully." });
 
         }
-        [HttpDelete("rooms/{id}")]
-        public async Task<IActionResult> DeleteRoom(int id)
+        [HttpDelete("housings/{id}")]
+        public async Task<IActionResult> DeleteHousing(int id , ApplicationUser user)
         {
 
-            var result = await _roomRepository.DeleteRoomAsync(id);
+            var result = await _housingRepository.DeleteAsync(id , user.Id);
             if (!result)
             {
-                return NotFound(new { Message = "Room not found." });
+                return NotFound(new { Message = "Housing not found." });
             }
-            return Ok(new { Message = "Room deleted successfully." });
+            return Ok(new { Message = "Housing deleted successfully." });
         }
         // Room Image methods
         [Authorize(Roles = "Admin")]
@@ -151,19 +160,19 @@ namespace Student_Housing_Platform.Controllers
             {
                 return BadRequest(new { Message = "Image size exceeds the 5MB limit." });
             }
-            var room = await _roomRepository.GetRoomEntityByIdAsync(roomId);
+            var room = await _housingRepository.GetByIdAsync(roomId);
 
-            if (room == null) return NotFound(new { Message = "Room not found." });
+            if (room == null) return NotFound(new { Message = "Housing not found." });
             var folder = $"rooms/{roomId}";
             var (url, publicId) = await _cloudinaryService.UploadImageAsync(imageFile, folder);
-            var roomImage = new RoomImage
+            var housingImage = new HousingImage
             {
                 ImageUrl = url,
                 PublicId = publicId,
-                IsMain = room.RoomImages == null || !room.RoomImages.Any()
+                IsPrimary = room.IsVerified.Equals(true) // Set as primary if the room is not verified
             };
-            await _roomRepository.AddRoomImageAsync(roomId, roomImage);
-            var dto = new RoomImageDto { ImageId = roomImage.ImageId, Url = roomImage.ImageUrl, IsMain = roomImage.IsMain };
+            await _housingRepository.AddHousingImageAsync(roomId, url , publicId , housingImage.IsPrimary);
+            var dto = new HousingImage { Id = housingImage.Id, ImageUrl = housingImage.ImageUrl, IsPrimary = housingImage.IsPrimary };
             return Ok(dto);
         }
         [Authorize(Roles = "Admin")]
@@ -171,10 +180,10 @@ namespace Student_Housing_Platform.Controllers
         public async Task<IActionResult> UploadRoomImagesBulk(int roomId, List<IFormFile> files)
         {
             if (files == null || !files.Any()) return BadRequest("No files provided.");
-            var room = await _roomRepository.GetRoomWithImagesAsync(roomId);
-            if (room == null) return NotFound("Room not found.");
+            var room = await _housingRepository.GetByIdAsync(roomId);
+            if (room == null) return NotFound("Housing not found.");
 
-            var results = new List<RoomImageDto>();
+            var results = new List<HousingImage>();
             var folder = $"bookify/rooms/{roomId}";
 
             foreach (var file in files)
@@ -185,14 +194,14 @@ namespace Student_Housing_Platform.Controllers
                 if (file.Length > 5 * 1024 * 1024) continue; // skip too big
 
                 var (url, publicId) = await _cloudinaryService.UploadImageAsync(file, folder);
-                var image = new RoomImage
+                var image = new HousingImage
                 {
                     ImageUrl = url,
                     PublicId = publicId,
-                    IsMain = (room.RoomImages == null || !room.RoomImages.Any()) && !results.Any()
+                    IsPrimary = (room.IsVerified == true) // Set as primary if the room is verified
                 };
-                await _roomRepository.AddRoomImageAsync(roomId, image);
-                results.Add(new RoomImageDto { ImageId = image.ImageId, Url = image.ImageUrl, IsMain = image.IsMain });
+                await _housingRepository.AddHousingImageAsync(roomId, url , publicId , image.IsPrimary);
+                results.Add(image);
             }
 
             return Ok(results);
@@ -201,13 +210,13 @@ namespace Student_Housing_Platform.Controllers
         [HttpDelete("rooms/{roomId}/images/{imageId}")]
         public async Task<IActionResult> DeleteRoomImage(int roomId, int imageId)
         {
-            var img = await _roomRepository.GetRoomImageByIdAsync(imageId);
-            if (img == null || img.RoomId != roomId) return NotFound();
+            var img = await _housingRepository.GetImageByIdAsync(imageId);
+            if (img == null || img.HousingId != roomId) return NotFound();
 
             if (!string.IsNullOrEmpty(img.PublicId))
                 await _cloudinaryService.DeleteImageAsync(img.PublicId);
 
-            var ok = await _roomRepository.DeleteRoomImageAsync(imageId);
+            var ok = await _housingRepository.DeleteHousingImageAsync(imageId);
             if (!ok) return StatusCode(500, "Failed to delete image.");
 
             return Ok(new { Message = "Image deleted." });

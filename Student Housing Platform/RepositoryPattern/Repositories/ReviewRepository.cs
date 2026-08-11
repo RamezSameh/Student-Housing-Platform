@@ -53,7 +53,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         public async Task<IEnumerable<ReviewDto>> GetReviewsByRoomIdAsync(int roomId)
         {
             return await _context.Reviews
-                .Where(r => r.Booking.RoomId == roomId)
+                .Where(r => r.Booking.HousingId == roomId)
                 .Include(r => r.User).Select(r => new ReviewDto
                 {
                     ReviewId = r.ReviewId,

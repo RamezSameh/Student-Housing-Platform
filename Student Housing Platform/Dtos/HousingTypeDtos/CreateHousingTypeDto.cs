@@ -1,10 +1,10 @@
 ﻿namespace Student_Housing_Platform.Dtos.RoomTypeDtos
 {
-    public class CreateRoomTypeDto
+    public class CreateHousingTypeDto
     {
         [Required]
         [MaxLength(100)]
-        public string RoomTypeName { get; set; }
+        public string HousingTypeName { get; set; }
         [MaxLength(500)]
         public string? Description { get; set; }
         [Required]
@@ -13,6 +13,6 @@
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         [Range(10.0, 10000.0)] 
-        public decimal PricePerNight { get; set; }
+        public decimal PricePerMonth{ get; set; }
     }
 }

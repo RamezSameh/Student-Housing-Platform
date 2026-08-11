@@ -1,9 +1,9 @@
 ﻿namespace Student_Housing_Platform.Models
 {
-    public class RoomType
+    public class HousingType
     {
         [Key]
-        public int RoomTypeId { get; set; }
+        public int HousingTypeId { get; set; }
         [Required]
         [MaxLength(100)]
         public string Name { get; set; }=string.Empty;
@@ -13,8 +13,8 @@
         public int Capacity { get; set; }
         [Required]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PricePerNight { get; set; }
-        public ICollection<Room> Rooms { get; set; } // many rooms can have same room type
+        public decimal PricePerMonth { get; set; }
+        public ICollection<Housing> Housings { get; set; } // many housings can have same housing type
 
     }
 }

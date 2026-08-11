@@ -52,20 +52,21 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         }
         public async Task<Booking> CreateBookingAsync(CreateBookingDto createBookingDto, string UserId)
         {
-            var room = await _context.Rooms
-                .Include(r => r.RoomType).FirstOrDefaultAsync(r => r.RoomId == createBookingDto.RoomId);
+            // Legacy CreateBookingDto.RoomId is now interpreted as HousingRoomId
+            var room = await _context.HousingRooms.FirstOrDefaultAsync(r => r.RoomId == createBookingDto.RoomId);
             if (room == null)
             {
                 throw new Exception("Room not found");
             }
-            var pricePerNight = room.RoomType.PricePerNight;
+            var pricePerNight = room.Price;
             var numberOfNights = (createBookingDto.CheckOut - createBookingDto.CheckIn).Days;
             if (numberOfNights <= 0)
             { throw new Exception("Check-out date must be after check-in date"); }
             var TotalAmount = pricePerNight * numberOfNights;
             var newBooking = new Booking
             {
-                RoomId = createBookingDto.RoomId,
+                HousingRoomId = createBookingDto.RoomId,
+                HousingId = room.HousingId,
                 UserId = UserId, // parameter from token
                 CheckInDate = createBookingDto.CheckIn,
                 CheckOutDate = createBookingDto.CheckOut,
@@ -80,7 +81,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         public async Task<IEnumerable<BookingDto>> GetUserBookingsAsync(string userId)
         {
             return await _context.Bookings.Where(b => b.UserId == userId)
-                .Include(b => b.Room).ThenInclude(r => r.RoomType).Include(b => b.Payment)
+                .Include(b => b.Payment)
+                .Include(b => b.HousingRoom).ThenInclude(r => r.Housing)
                 .Select(b => new BookingDto
                 {
                     //booking props
@@ -90,14 +92,13 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     BookingDate = b.BookingDate,
                     TotalCost = b.TotalAmount,
                     Status = b.bookingStatus.ToString(),
-                    //room props
-                    RoomNumber = b.Room.RoomNumber,
-                    Floor = b.Room.Floor,
-                    RoomTypeName = b.Room.RoomType.Name,
+                    // room/housing props (mapped for housing rooms)
+                    RoomNumber = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
+                    Floor = 0,
+                    RoomTypeName = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
                     // Payment props
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
                     PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
-
                 })
                 .ToListAsync();
         }
@@ -106,7 +107,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         {
             var booking = _context.Bookings
                 .Where(b => b.BookingId == bookingId && b.UserId == userId)
-                .Include(b => b.Room).ThenInclude(r => r.RoomType)
+                .Include(b => b.HousingRoom).ThenInclude(r => r.Housing)
                 .Include(b => b.Payment)
                 .Select(b => new BookingDto
                 {
@@ -117,10 +118,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     BookingDate = b.BookingDate,
                     TotalCost = b.TotalAmount,
                     Status = b.bookingStatus.ToString(),
-                    //room props
-                    RoomNumber = b.Room.RoomNumber,
-                    Floor = b.Room.Floor,
-                    RoomTypeName = b.Room.RoomType.Name,
+                    //housing room props
+                    RoomNumber = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
+                    Floor = 0,
+                    RoomTypeName = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
                     // Payment props
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
                     PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"

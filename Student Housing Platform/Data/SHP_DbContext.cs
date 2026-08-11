@@ -11,15 +11,13 @@ namespace Student_Housing_Platform.Data
         }
 
         public DbSet<Booking> Bookings { get; set; }
-        public DbSet<Room> Rooms { get; set; }
-        public DbSet<RoomType> RoomTypes { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
-        public DbSet<RoomImage> RoomImages { get; set; }
 
         // Housings
         public DbSet<Housing> Housings { get; set; }
         public DbSet<HousingRoom> HousingRooms { get; set; }
+        public DbSet<HousingType> HousingTypes { get; set; }
         public DbSet<Amenity> Amenities { get; set; }
         public DbSet<HousingAmenity> HousingAmenities { get; set; }
         public DbSet<HousingImage> HousingImages { get; set; }
@@ -38,8 +36,8 @@ namespace Student_Housing_Platform.Data
 
             // ----- convert all the enums to string -----
 
-            builder.Entity<Room>()
-                .Property(r => r.status).HasConversion<string>();// Storing the RoomStatus enum as string in the database
+            builder.Entity<Housing>()
+                .Property(r => r.IsAvailable).HasConversion<bool>();// Storing the RoomStatus enum as string in the database
 
             builder.Entity<Booking>()
                 .Property(b => b.bookingStatus).HasConversion<string>();// Storing the BookingStatus enum as string in the database
@@ -68,9 +66,9 @@ namespace Student_Housing_Platform.Data
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<RoomImage>()
-                .HasOne(ri => ri.Room).WithMany(r => r.RoomImages)
-                .HasForeignKey(ri => ri.RoomId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<HousingImage>()
+                .HasOne(ri => ri.Housing).WithMany(r => r.Images)
+                .HasForeignKey(ri => ri.HousingId).OnDelete(DeleteBehavior.Cascade);
 
             // University configuration
             builder.Entity<University>(b =>

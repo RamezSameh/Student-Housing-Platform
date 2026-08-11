@@ -110,8 +110,7 @@ builder.Services.AddCors(options =>
 
 // DI registrations
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
+
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
@@ -125,6 +124,7 @@ builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddSingleton<IDistanceCalculator, DistanceCalculator>();
 // Housing repository
 builder.Services.AddScoped<IHousingRepository, HousingRepository>();
+builder.Services.AddScoped<IHousingTypeRepository, HousingTypeRepository>();
 // Recommendation service
 builder.Services.AddScoped<Student_Housing_Platform.Services.Recommendation.IRecommendationService, Student_Housing_Platform.Services.Recommendation.RecommendationService>();
 // Admin service

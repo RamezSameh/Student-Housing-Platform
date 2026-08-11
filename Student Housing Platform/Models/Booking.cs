@@ -25,10 +25,6 @@ namespace Student_Housing_Platform.Models
         [ForeignKey("UserId")]
         public ApplicationUser User { get; set; } // many bookings by one user
 
-        // legacy Room bookings (existing short-stay model)
-        public int? RoomId { get; set; }
-        [ForeignKey("RoomId")]
-        public Room? Room { get; set; }
 
         // new Housing booking support
         public int? HousingId { get; set; }

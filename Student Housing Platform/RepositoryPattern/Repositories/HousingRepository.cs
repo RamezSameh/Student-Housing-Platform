@@ -35,7 +35,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             decimal? minPrice = null,
             decimal? maxPrice = null,
             double? maxDistance = null,
-            string? housingType = null,
+            string? housingTypeName = null,
             string? roomType = null,
             string? genderType = null,
             bool? isFurnished = null,
@@ -67,7 +67,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
 
             if (minPrice.HasValue) query = query.Where(h => h.Price >= minPrice.Value);
             if (maxPrice.HasValue) query = query.Where(h => h.Price <= maxPrice.Value);
-            if (!string.IsNullOrEmpty(housingType)) query = query.Where(h => h.HousingType == housingType);
+            if (!string.IsNullOrEmpty(housingTypeName)) query = query.Where(h => h.HousingType.Name == housingTypeName);
             if (!string.IsNullOrEmpty(genderType)) query = query.Where(h => h.GenderType == genderType);
             if (isFurnished.HasValue) query = query.Where(h => h.IsFurnished == isFurnished.Value);
 
@@ -102,7 +102,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             }
 
             // Project minimal fields to reduce data transfer
-            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.HousingType, h.IsFurnished }).ToListAsync(cancellationToken);
+            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.HousingTypeName, h.IsFurnished }).ToListAsync(cancellationToken);
 
             // Bulk ratings
             var housingIds = candidates.Select(c => c.HousingId).ToList();
@@ -206,7 +206,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 Price = item.Price,
                 DistanceKm = 0, // client can request distance if needed
                 Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
-                RoomTypes = string.Empty,
+                HousingTypes = string.Empty,
                 Amenities = string.Empty,
                 IsFurnished = item.IsFurnished,
                 IsAvailable = item.IsAvailable
@@ -226,7 +226,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 Latitude = dto.Latitude,
                 Longitude = dto.Longitude,
                 Price = dto.Price,
-                HousingType = dto.HousingType,
+                HousingTypeName = dto.HousingTypeName,
                 GenderType = dto.GenderType,
                 IsFurnished = dto.IsFurnished,
                 IsAvailable = dto.IsAvailable,
@@ -255,7 +255,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             entity.Latitude = dto.Latitude;
             entity.Longitude = dto.Longitude;
             entity.Price = dto.Price;
-            entity.HousingType = dto.HousingType;
+            entity.HousingTypeName = dto.HousingTypeName;
             entity.GenderType = dto.GenderType;
             entity.IsFurnished = dto.IsFurnished;
             entity.IsAvailable = dto.IsAvailable;

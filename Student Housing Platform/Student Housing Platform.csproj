@@ -27,4 +27,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dtos\RoomDtos\" />
+    <Folder Include="Dtos\RoomImageDtos\" />
+  </ItemGroup>
+
 </Project>

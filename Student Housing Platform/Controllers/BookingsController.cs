@@ -1,5 +1,4 @@
-﻿
-using Student_Housing_Platform.Dtos.BookingDtos;
+﻿using Student_Housing_Platform.Dtos.BookingDtos;
 using Student_Housing_Platform.Dtos.PaymentDtos;
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -14,11 +13,9 @@ namespace Student_Housing_Platform.Controllers
     public class BookingsController : ControllerBase
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly IRoomRepository _roomRepository; // (علشان نتأكد إن الغرفة موجودة)
-        public BookingsController(IBookingRepository bookingRepository, IRoomRepository roomRepository, UserManager<ApplicationUser> userManager)
+        public BookingsController(IBookingRepository bookingRepository, UserManager<ApplicationUser> userManager)
         {
             _bookingRepository = bookingRepository;
-            _roomRepository = roomRepository;
         }
 
         // POST: /api/bookings/housing
@@ -69,11 +66,6 @@ namespace Student_Housing_Platform.Controllers
                 return Unauthorized("User ID not found in token.");
             }
 
-            var room = await _roomRepository.GetRoomEntityByIdAsync(bookingDto.RoomId);
-            if (room == null)
-            {
-                return BadRequest("Invalid Room ID.");
-            }
             try {
                 var newBooking = await _bookingRepository.CreateBookingAsync(bookingDto, userId);
                 // Circular Reference Problem Solution:

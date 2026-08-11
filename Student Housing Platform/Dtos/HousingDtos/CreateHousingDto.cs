@@ -1,3 +1,4 @@
+using Student_Housing_Platform.Dtos.RoomTypeDtos;
 using System.ComponentModel.DataAnnotations;
 
 namespace Student_Housing_Platform.Dtos.HousingDtos
@@ -30,10 +31,11 @@ namespace Student_Housing_Platform.Dtos.HousingDtos
         [Required]
         [Range(0.0,double.MaxValue)]
         public decimal Price { get; set; }
-
-        public string? HousingType { get; set; }
+        [Required]
+        public string HousingTypeName { get; set; } = string.Empty;
         public string? GenderType { get; set; }
         public bool IsFurnished { get; set; } = false;
         public bool IsAvailable { get; set; } = true;
+        public string OwnerId { get; set; } = string.Empty;
     }
 }

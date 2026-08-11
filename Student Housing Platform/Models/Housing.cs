@@ -37,9 +37,10 @@ namespace Student_Housing_Platform.Models
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
-
+        [Required]
         [MaxLength(50)]
-        public string? HousingType { get; set; }
+        public string HousingTypeName { get; set; } = string.Empty;
+        public HousingType HousingType { get; set; }
 
         [MaxLength(50)]
         public string? GenderType { get; set; }
