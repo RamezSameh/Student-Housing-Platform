@@ -1,328 +1,562 @@
-# 🏠 Sakan Talaba – Student Housing Platform
+# 🏠 Sakan Talaba — Student Housing Platform
 
-A full-stack student housing platform that helps university students find suitable and affordable accommodation near their universities.
+> A .NET 8 Web API that helps university students discover, compare, and book suitable housing near their universities.
 
-The platform allows students to search for available housing, explore room details and images, and manage their bookings. Administrators can manage housing, room types, users, bookings, and room images.
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-Web%20API-512BD4?logo=dotnet&logoColor=white)](https://learn.microsoft.com/aspnet/core/)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-Database-CC2927?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
+[![Entity Framework Core](https://img.shields.io/badge/EF%20Core-8.0-512BD4)](https://learn.microsoft.com/ef/core/)
+[![JWT](https://img.shields.io/badge/Auth-JWT-000000)](https://jwt.io/)
+[![Cloudinary](https://img.shields.io/badge/Images-Cloudinary-3448C5?logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+
+## 📌 Overview
+
+**Sakan Talaba** is a student-housing backend platform built with **ASP.NET Core 8 Web API**.
+
+The system is designed to make it easier for students to find housing close to their universities while considering factors such as:
+
+- 📍 Distance from university
+- 💰 Budget
+- 🛏️ Room type
+- 🚻 Gender preference
+- 🛜 Amenities
+- ⭐ Housing ratings
+- ✅ Housing availability and verification
+
+The API also supports housing comparison, personalized recommendations, favorites, bookings, reviews, notifications, and real-time conversations.
 
 ---
 
-## 📌 Project Overview
+## 🚀 Key Features
 
-**Sakan Talaba** is designed to solve a common problem for university students: finding safe, affordable, and conveniently located accommodation near their university.
+### 👨‍🎓 Student / User Features
 
-The platform provides a centralized system where students can:
-
-* 🔍 Search for available housing.
-* 📍 Find housing near universities.
-* 🏠 View housing and room details.
-* 🖼️ View room images.
-* 📅 Make and manage bookings.
-* 👤 Manage their accounts.
-* ⭐ Explore different room types and housing options.
-
-Administrators can manage the entire platform through an admin dashboard.
-
----
-
-## 🚀 Features
-
-### 👨‍🎓 Student Features
-
-* User Registration & Login
-* JWT Authentication
-* Role-based Authorization
-* Browse available housing
-* Search and filter housing
-* Find housing near universities
-* View room details
-* View room images
-* Room type information
-* Booking management
-* View booking history
+- 🔐 Registration and login
+- 🎟️ JWT authentication
+- 👤 Role-based authorization
+- 🏠 Browse available housing
+- 🔎 Search and filter housing
+- 📍 Find housing near a university
+- ⚖️ Compare multiple housing options
+- 🤖 Recommended housing based on user preferences
+- ❤️ Add/remove housing favorites
+- 📅 Create and manage bookings
+- 💳 Payment confirmation support
+- ⭐ Submit and view housing/room reviews
+- 🔔 Notifications
+- 💬 Conversations and messaging
+- 🏫 Browse universities
 
 ### 👨‍💼 Admin Features
 
-* Admin authentication
-* Manage users
-* Promote users to Admin
-* Demote Admin users
-* Manage housing
-* Add / Update / Delete housing
-* Manage room types
-* Add / Update / Delete room types
-* Upload room images
-* Upload multiple room images
-* Delete room images
-* Set main room images
-* Manage bookings
+- Manage housing types
+- Create, update, and delete housing
+- Manage users and roles
+- Promote users to Admin
+- Demote Admin users
+- View users and roles
+- View bookings
+- Upload housing images
+- Upload multiple images
+- Delete housing images
+- Cloudinary image management
 
-### ☁️ Image Management
+### 📍 Location & Recommendation Engine
 
-Room images are uploaded and stored using **Cloudinary**.
+The platform includes location-aware housing discovery.
 
-The system supports:
+It supports:
 
-* JPG
-* JPEG
-* PNG
-* Maximum file size: 5 MB
-* Multiple image uploads
-* Main image selection
-* Cloudinary image deletion
+- University-based nearby search
+- Radius-based filtering
+- Distance calculation using latitude/longitude
+- Housing comparison
+- Recommendation scoring
+- Budget matching
+- Distance matching
+- Amenities matching
+- Rating matching
+- Room-type matching
+
+The recommendation engine combines these factors into a **match score** to rank suitable housing options.
 
 ---
 
-## 🛠️ Technologies
+## 🛠️ Tech Stack
 
 ### Backend
 
-* C#
-* ASP.NET Core Web API
-* Entity Framework Core
-* LINQ
-* ASP.NET Core Identity
-* JWT Authentication
-* RESTful APIs
+- C#
+- .NET 8
+- ASP.NET Core Web API
+- ASP.NET Core Identity
+- JWT Bearer Authentication
+- Entity Framework Core 8
+- LINQ
+- FluentValidation
+- RESTful API
 
-### Database
+### Database & Spatial Data
 
-* Microsoft SQL Server
-* Entity Framework Core
-* Code First
-* Migrations
+- Microsoft SQL Server
+- Entity Framework Core Code First
+- EF Core Migrations
+- NetTopologySuite
+- Spatial/location support
 
-### Architecture & Design
+### Architecture & Patterns
 
-* Repository Pattern
-* Dependency Injection
-* DTOs
-* Service Layer
-* SOLID Principles
-* Separation of Concerns
-* Async/Await
+- Repository Pattern
+- Dependency Injection
+- DTO Pattern
+- Service Layer
+- Options Pattern
+- Separation of Concerns
+- Async/Await
+- SOLID-oriented architecture
 
-### Cloud & Tools
+### External Services & Tools
 
-* Cloudinary
-* Swagger / OpenAPI
-* Postman
-* Git
-* GitHub
-* Visual Studio
+- Cloudinary
+- Swagger / OpenAPI
+- SignalR
+- Docker
+- GitHub Actions
+- Postman
+- Visual Studio
 
 ---
 
-## 🏗️ Architecture
-
-The backend follows a layered architecture:
+## 🏗️ Project Architecture
 
 ```text
 Student Housing Platform
 │
 ├── Controllers
+│   ├── AccountsController
 │   ├── AdminController
-│   ├── HousingController
-│   ├── BookingController
-│   └── AuthController
+│   ├── BookingsController
+│   ├── ConversationsController
+│   ├── FavoritesController
+│   ├── HousingReviewsController
+│   ├── HousingsController
+│   ├── NotificationsController
+│   ├── ReviewsController
+│   └── UniversitiesController
 │
-├── DTOs
-│   ├── HousingDtos
-│   ├── RoomTypeDtos
-│   ├── BookingDtos
-│   └── UserDtos
+├── Data
+│   ├── SHP_DbContext
+│   ├── SeedData
+│   └── SampleSeed
 │
 ├── Models
+│   ├── ApplicationUser
 │   ├── Housing
-│   ├── Room
-│   ├── RoomImage
-│   ├── RoomType
+│   ├── HousingRoom
+│   ├── HousingType
+│   ├── HousingImage
+│   ├── Amenity
+│   ├── HousingAmenity
+│   ├── University
 │   ├── Booking
-│   └── ApplicationUser
+│   ├── Payment
+│   ├── Review
+│   ├── HousingReview
+│   ├── Favorite
+│   ├── Notification
+│   ├── Conversation
+│   └── Message
+│
+├── DTOs
+│   ├── AccountDtos
+│   ├── BookingDtos
+│   ├── HousingDtos
+│   ├── Common
+│   └── ...
 │
 ├── RepositoryPattern
 │   ├── Interfaces
 │   └── Repositories
 │
 ├── Services
+│   ├── Admin
 │   ├── CloudinaryService
-│   └── Authentication Services
+│   ├── Distance
+│   ├── Recommendation
+│   └── TokenService
 │
-├── Data
-│   └── ApplicationDbContext
-│
-└── Migrations
+├── Validators
+├── Middleware
+├── Hubs
+├── Extensions
+├── OptionsPattern
+└── Tests
 ```
 
 ---
 
 ## 🔐 Authentication & Authorization
 
-The application uses **ASP.NET Core Identity** and **JWT Bearer Authentication**.
+Authentication is implemented using **ASP.NET Core Identity + JWT**.
 
-Users can have different roles, such as:
+The application supports roles including:
 
 ```text
-Student
 Admin
+Student
+Owner
+Customer
 ```
 
-Protected endpoints use role-based authorization:
+Protected endpoints use role-based authorization, for example:
 
 ```csharp
 [Authorize(Roles = "Admin")]
 ```
 
-The JWT token contains the required claims and roles to control access to protected resources.
+JWT claims are configured for:
+
+- User identity
+- User name
+- User role
+
+A default Admin role/user can also be seeded through application settings.
 
 ---
 
-## 🏠 Housing Management
+## 📚 Main API Endpoints
 
-Administrators can manage housing through REST APIs.
-
-### Create Housing
+### 🔑 Accounts
 
 ```http
-POST /api/Admin/housing
+POST /api/Accounts/register
+POST /api/Accounts/login
 ```
 
-### Update Housing
+### 🏠 Housing
 
 ```http
-PUT /api/Admin/housing/{id}
+GET    /api/Housings
+GET    /api/Housings/{id}
+POST   /api/Housings
+PUT    /api/Housings/{id}
+DELETE /api/Housings/{id}
 ```
 
-### Delete Housing
+### 🔎 Housing Discovery
 
 ```http
-DELETE /api/Admin/housing/{id}
+GET /api/Housings/search
+GET /api/Housings/nearby
+GET /api/Housings/compare
+GET /api/Housings/recommended
 ```
 
-### Get All Housing
-
-```http
-GET /api/Housings
-```
-
-Pagination is supported:
+Example pagination:
 
 ```http
 GET /api/Housings?page=1&pageSize=20
 ```
 
----
-
-## 🖼️ Room Images
-
-Room images are stored using Cloudinary.
-
-### Upload Image
+Nearby search supports a university and radius:
 
 ```http
-POST /api/Admin/rooms/{roomId}/images
+GET /api/Housings/nearby?universityId=1&radius=2&page=1&pageSize=20
 ```
 
-### Upload Multiple Images
+### 🖼️ Housing Images
 
 ```http
-POST /api/Admin/rooms/{roomId}/images/bulk
+POST   /api/Housings/{id}/images
+DELETE /api/Housings/images/{imageId}
 ```
 
-### Delete Image
+Admin bulk image management:
 
 ```http
+POST   /api/Admin/rooms/{roomId}/images
+POST   /api/Admin/rooms/{roomId}/images/bulk
 DELETE /api/Admin/rooms/{roomId}/images/{imageId}
 ```
 
+### 📅 Bookings
+
+```http
+POST /api/Bookings/housing
+POST /api/Bookings
+GET  /api/Bookings/my-bookings
+GET  /api/Bookings/{id}
+POST /api/Bookings/confirm-payment
+```
+
+### ❤️ Favorites
+
+```http
+GET    /api/Favorites
+POST   /api/Favorites/{housingId}
+DELETE /api/Favorites/{housingId}
+```
+
+### ⭐ Housing Reviews
+
+```http
+GET  /api/housings/{housingId}/reviews
+POST /api/housings/{housingId}/reviews
+```
+
+### 💬 Conversations
+
+```http
+POST /api/Conversations
+GET  /api/Conversations
+GET  /api/Conversations/{id}/messages
+```
+
+### 🔔 Notifications
+
+```http
+GET /api/Notifications
+PUT /api/Notifications/{id}/read
+```
+
+### 🏫 Universities
+
+```http
+GET    /api/Universities
+GET    /api/Universities/{id}
+POST   /api/Universities
+PUT    /api/Universities/{id}
+DELETE /api/Universities/{id}
+```
+
 ---
 
-## 📍 Nearby Housing
+## 🧠 Recommendation System
 
-The platform supports finding housing based on proximity to universities.
+The recommendation service ranks available housing using multiple signals.
+
+Current scoring factors include:
+
+| Factor | Weight |
+|---|---:|
+| 💰 Price | 30% |
+| 📍 Distance | 30% |
+| 🛜 Amenities | 20% |
+| ⭐ Rating | 10% |
+| 🛏️ Room Type | 10% |
+
+The resulting score is returned as a **Match Score** from 0–100.
 
 Example:
 
-```http
-GET /api/Housings/nearby
-```
-
-The nearby search can be extended to support:
-
-* University location
-* Latitude / Longitude
-* Search radius
-* Distance sorting
-* Available housing only
-
----
-
-## 📅 Booking System
-
-Students can book available accommodation through the platform.
-
-The booking system is designed to prevent invalid bookings and maintain booking status.
-
-Example statuses:
-
 ```text
-Pending
-Confirmed
-Cancelled
-Completed
+Budget       → 30%
+Distance     → 30%
+Amenities    → 20%
+Rating       → 10%
+Room Type    → 10%
+                    ─────
+                     100%
 ```
 
 ---
 
-## 🗄️ Database
+## 📍 Distance Calculation
 
-The application uses SQL Server with Entity Framework Core.
+The project contains a dedicated `DistanceCalculator` service using latitude and longitude to calculate distance in kilometers.
 
-Main entities include:
+This supports features such as:
+
+- Nearby housing
+- Distance filtering
+- Recommendation scoring
+- University-based housing discovery
+
+SQL Server is configured with **NetTopologySuite** for spatial data support.
+
+---
+
+## 🗄️ Main Database Relationships
 
 ```text
 ApplicationUser
-      │
-      ├── Bookings
-      │
-      └── Roles
+│
+├── Bookings
+├── Reviews
+├── Favorites
+├── HousingReviews
+├── Notifications
+└── Messages
+        │
+        ▼
+   Conversation
+
+University
+   │
+   └── Location
+       (Latitude / Longitude)
 
 Housing
-   │
-   ├── RoomType
-   │
-   └── RoomImages
+│
+├── Owner → ApplicationUser
+├── HousingType
+├── HousingRooms
+├── HousingImages
+├── HousingAmenities
+├── HousingReviews
+└── Bookings
 
-Room
+HousingRoom
    │
-   ├── RoomType
-   └── RoomImages
+   └── Housing
+
+Amenity
+   │
+   └── HousingAmenities
 
 Booking
-   │
-   ├── User
-   └── Housing
+│
+├── User
+├── Housing
+├── HousingRoom
+├── Payment
+└── Review
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## ☁️ Cloudinary Image Storage
+
+Housing images are uploaded to **Cloudinary** rather than being stored directly on the server.
+
+Supported formats:
+
+```text
+.jpg
+.jpeg
+.png
+```
+
+Maximum image size:
+
+```text
+5 MB
+```
+
+Each image can store:
+
+- Image URL
+- Cloudinary Public ID
+- Primary image flag
+- Creation date
+
+---
+
+## 💬 Real-Time Messaging
+
+The project includes **SignalR** for real-time chat.
+
+Hub endpoint:
+
+```text
+/hubs/chat
+```
+
+Messages are also persisted through the `MessageRepository`.
+
+---
+
+## 🧪 Testing
+
+The repository contains automated tests for important application services.
+
+Current test areas include:
+
+```text
+Tests/
+├── DistanceTests.cs
+└── RecommendationServiceTests.cs
+```
+
+Run tests with:
+
+```bash
+dotnet test Tests/StudentHousingPlatform.Tests.csproj
+```
+
+---
+
+## 🔄 CI Pipeline
+
+GitHub Actions is configured to run on pushes and pull requests to `master`.
+
+The pipeline performs:
+
+```text
+Checkout
+   ↓
+Setup .NET 8
+   ↓
+Restore
+   ↓
+Build
+   ↓
+Run Tests
+```
+
+Workflow:
+
+```text
+Student Housing Platform/.github/workflows/ci.yml
+```
+
+---
+
+## 🐳 Docker
+
+The project includes a multi-stage Dockerfile based on .NET 8.
+
+Build:
+
+```bash
+docker build -t sakan-talaba .
+```
+
+Run:
+
+```bash
+docker run -p 8080:80 sakan-talaba
+```
+
+> Database and external service configuration should be supplied through environment variables or deployment configuration.
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+Make sure you have:
+
+- .NET 8 SDK
+- SQL Server
+- Git
+- Visual Studio / VS Code
+- Cloudinary account (for image uploads)
 
 ### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/RamezSameh/Sakan-Talaba.git
-```
-
-```bash
 cd Sakan-Talaba
 ```
 
-### 2. Configure Database
+### 2. Configure the Database
 
-Update your connection string in:
+Update the connection string in:
 
 ```text
-appsettings.json
+Student Housing Platform/appsettings.json
 ```
 
 Example:
@@ -337,8 +571,6 @@ Example:
 
 ### 3. Configure Cloudinary
 
-Add your Cloudinary credentials:
-
 ```json
 {
   "Cloudinary": {
@@ -349,116 +581,109 @@ Add your Cloudinary credentials:
 }
 ```
 
-> Do not commit real Cloudinary credentials to GitHub.
+### 4. Configure JWT
 
-### 4. Apply Migrations
+Configure the JWT settings required by the application:
+
+```json
+{
+  "JWTSettings": {
+    "Secret": "YOUR_SECRET",
+    "ValidIssuer": "YOUR_ISSUER",
+    "ValidAudience": "YOUR_AUDIENCE"
+  }
+}
+```
+
+### 5. Configure Admin
+
+The application supports seeded Admin credentials through the Admin settings section.
+
+**Do not commit real passwords, JWT secrets, API keys, or Cloudinary credentials to GitHub.**
+
+### 6. Apply Migrations
 
 ```bash
 dotnet ef database update
 ```
 
-If migrations don't exist:
-
-```bash
-dotnet ef migrations add InitialCreate
-```
-
-Then:
-
-```bash
-dotnet ef database update
-```
-
-### 5. Run the Project
+### 7. Run the API
 
 ```bash
 dotnet run
 ```
 
-The API can then be tested through Swagger.
+The application exposes a root endpoint:
+
+```text
+GET /
+```
+
+which returns:
+
+```text
+API is running...
+```
 
 ---
 
-## 📚 API Documentation
+## 📖 Swagger / OpenAPI
 
-Swagger / OpenAPI is included in the project.
+When running in the Development environment, Swagger is enabled.
 
-After running the application, open:
+Open:
 
 ```text
 /swagger
 ```
 
-Swagger can be used to:
+Swagger can be used to test:
 
-* Test authentication
-* Test housing endpoints
-* Test booking endpoints
-* Test admin endpoints
-* Upload room images
-* Test CRUD operations
+- Authentication
+- Housing discovery
+- Recommendations
+- Bookings
+- Favorites
+- Reviews
+- Admin operations
+- Universities
+- Notifications
+- Conversations
 
----
-
-## 🔑 Example API Flow
-
-A typical student flow:
-
-```text
-Register
-   ↓
-Login
-   ↓
-Receive JWT Token
-   ↓
-Browse Housing
-   ↓
-Search Near University
-   ↓
-View Housing
-   ↓
-View Room Images
-   ↓
-Create Booking
-   ↓
-Manage Booking
-```
-
-Admin flow:
-
-```text
-Admin Login
-   ↓
-Manage Users
-   ↓
-Manage Room Types
-   ↓
-Manage Housing
-   ↓
-Upload Room Images
-   ↓
-Manage Bookings
-```
+For protected endpoints, authenticate using the JWT Bearer token.
 
 ---
 
-## 🔮 Future Improvements
+## 🔒 Security Notes
 
-Planned improvements include:
+Before deploying the project:
 
-* ⭐ Housing ratings and reviews
-* ❤️ Favorite housing
-* 🔔 Booking notifications
-* 💬 Student / owner messaging
-* 🗺️ Interactive maps
-* 📍 Advanced location-based search
-* 💰 Price range filtering
-* 🏫 University-based filtering
-* 📱 Responsive frontend
-* 📊 Admin dashboard analytics
-* 🔎 Advanced search and filtering
-* 🧠 Smart housing recommendations
-* 💳 Online payment integration
+- Move secrets out of `appsettings.json`.
+- Use environment variables or a secret manager.
+- Never commit production database credentials.
+- Never commit Cloudinary API secrets.
+- Use a strong JWT signing secret.
+- Enable HTTPS in production.
+- Configure CORS for the production frontend domain.
+- Review default Admin credentials before deployment.
+
+---
+
+## 🗺️ Roadmap
+
+Potential future improvements:
+
+- [ ] Full student-facing frontend
+- [ ] Advanced map integration
+- [ ] Interactive housing map
+- [ ] More advanced recommendation algorithms
+- [ ] Real payment gateway integration
+- [ ] Email/SMS notifications
+- [ ] Owner dashboard
+- [ ] Advanced admin analytics
+- [ ] Housing availability calendar
+- [ ] More comprehensive automated tests
+- [ ] Production deployment / cloud hosting
 
 ---
 
@@ -468,24 +693,25 @@ Planned improvements include:
 
 Full Stack .NET Developer
 
-* ASP.NET Core
-* C#
-* SQL Server
-* Entity Framework Core
-* React
-* Angular
+Focused on:
+
+- C#
+- ASP.NET Core
+- Web API
+- Entity Framework Core
+- SQL Server
+- React / Angular
+- REST APIs
+- Clean and maintainable backend architecture
 
 ---
 
 ## ⭐ Support
 
-If you find this project useful, consider giving it a ⭐ on GitHub.
+If you find this project useful, consider giving the repository a ⭐ on GitHub.
 
 ---
 
 ## 📄 License
 
-This project is available for educational and portfolio purposes.
-
-```
-```
+This project is intended for educational, portfolio, and demonstration purposes.
