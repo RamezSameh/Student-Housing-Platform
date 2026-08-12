@@ -1,0 +1,1 @@
+Student housing platform built with ASP.NET Core 8 Web API. Helps students discover, compare, and book housing near universities using location, budget, amenities, room type, and ratings.
