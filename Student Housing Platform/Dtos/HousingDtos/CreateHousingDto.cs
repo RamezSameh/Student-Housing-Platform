@@ -32,7 +32,7 @@ namespace Student_Housing_Platform.Dtos.HousingDtos
         [Range(0.0,double.MaxValue)]
         public decimal Price { get; set; }
         [Required]
-        public string HousingTypeName { get; set; } = string.Empty;
+        public int HousingTypeId { get; set; }
         public string? GenderType { get; set; }
         public bool IsFurnished { get; set; } = false;
         public bool IsAvailable { get; set; } = true;
