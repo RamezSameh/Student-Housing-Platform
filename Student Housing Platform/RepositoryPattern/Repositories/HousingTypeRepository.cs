@@ -16,21 +16,21 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
            return await _context.HousingTypes.Select(rt => new HousingTypeDto
             {
                 HousingTypeIdDto = rt.HousingTypeId,
-                HousingTypeNameDto = rt.Name,
+                HousingTypeNameDto = rt.HousingTypeName,
                 HousingTypeDescriptionDto = rt.Description,
                 HousingTypeCapacityDto = rt.Capacity,
                 HousingTypePricePerMonthDto = rt.PricePerMonth
             }).ToListAsync();
         }
-        public async Task<HousingTypeDto?> GetHousingTypeDtoByNameAsync(string housingTypeName)
+        public async Task<HousingTypeDto?> GetHousingTypeDtoByIdAsync(int housingTypeId)
         {
             return await _context.HousingTypes.Select(Rt=> new HousingTypeDto { 
                 HousingTypeIdDto = Rt.HousingTypeId,
-                HousingTypeNameDto = Rt.Name,
+                HousingTypeNameDto = Rt.HousingTypeName,
                 HousingTypeDescriptionDto = Rt.Description,
                 HousingTypeCapacityDto = Rt.Capacity,
                 HousingTypePricePerMonthDto = Rt.PricePerMonth  
-            }).FirstOrDefaultAsync(rtId => rtId.HousingTypeNameDto ==  housingTypeName);
+            }).FirstOrDefaultAsync(rtId => rtId.HousingTypeIdDto ==  housingTypeId);
         }
         public async Task<HousingType> GetHousingTypeEntityByIdAsync(int housingTypeId)
         {
@@ -40,7 +40,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         {
             var newHousingType = new HousingType
             {
-                Name = housingTypeDto.HousingTypeName,
+                HousingTypeName = housingTypeDto.HousingTypeName,
                 Description = housingTypeDto.Description,
                 Capacity = housingTypeDto.Capacity,
                 PricePerMonth = housingTypeDto.PricePerMonth,
@@ -53,7 +53,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             var HousingTypeUpdate = _context.HousingTypes.Find(housingTypeId);
             if (HousingTypeUpdate != null)
             {
-                HousingTypeUpdate.Name = housingTypeDto.HousingTypeName;
+                HousingTypeUpdate.HousingTypeName = housingTypeDto.HousingTypeName;
                 HousingTypeUpdate.Description = housingTypeDto.Description;
                 HousingTypeUpdate.Capacity = housingTypeDto.Capacity;
                 HousingTypeUpdate.PricePerMonth = housingTypeDto.PricePerMonth;

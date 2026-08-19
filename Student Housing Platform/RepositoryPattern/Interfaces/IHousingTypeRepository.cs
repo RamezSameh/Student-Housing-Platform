@@ -9,7 +9,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
     {
         // For admin settings
         Task <IEnumerable<HousingTypeDto>> GetAllHousingTypesAsync();
-        Task<HousingTypeDto?> GetHousingTypeDtoByNameAsync(string housingTypeName);
+        Task<HousingTypeDto?> GetHousingTypeDtoByIdAsync(int housingTypeId);
         Task<HousingType> GetHousingTypeEntityByIdAsync(int housingTypeId);
         Task AddHousingTypeAsync(CreateHousingTypeDto housingTypeDto);
         Task UpdateHousingTypeAsync(int housingTypeId, CreateHousingTypeDto housingTypeDto);

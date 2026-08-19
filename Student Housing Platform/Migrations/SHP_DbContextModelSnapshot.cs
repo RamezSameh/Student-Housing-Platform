@@ -374,11 +374,6 @@ namespace Student_Housing_Platform.Migrations
                     b.Property<int>("HousingTypeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("HousingTypeName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
@@ -560,7 +555,7 @@ namespace Student_Housing_Platform.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("HousingTypeName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -859,7 +854,7 @@ namespace Student_Housing_Platform.Migrations
                     b.HasOne("Student_Housing_Platform.Models.HousingType", "HousingType")
                         .WithMany("Housings")
                         .HasForeignKey("HousingTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Student_Housing_Platform.Models.ApplicationUser", "Owner")

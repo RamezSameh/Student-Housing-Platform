@@ -54,9 +54,9 @@ namespace Student_Housing_Platform.Controllers
 
         }
         [HttpGet("housing-types/{name}")]
-        public async Task<IActionResult> GetHousingTypeByName(string name)
+        public async Task<IActionResult> GetHousingTypeById(int id)
         {
-            var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(name);
+            var housingType = await _housingTypeRepository.GetHousingTypeDtoByIdAsync(id);
             if (housingType == null)
             {
                 return NotFound(new { Message = "Housing type not found." });
@@ -96,7 +96,7 @@ namespace Student_Housing_Platform.Controllers
             }
             // Get current logged-in user
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); if (string.IsNullOrEmpty(userId)) { return Unauthorized(new { Message = "User ID not found in token." }); }
-            var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(housingDto.HousingTypeName);
+            var housingType = await _housingTypeRepository.GetHousingTypeDtoByIdAsync(housingDto.HousingTypeId);
             if (housingType == null)
             {
                 return BadRequest(new { Message = "Invalid HousingType. Housing type does not exist." });
@@ -115,7 +115,7 @@ namespace Student_Housing_Platform.Controllers
                 Latitude = housingDto.Latitude,
                 Longitude = housingDto.Longitude,
                 Price = housingDto.Price,
-                HousingTypeName = housingDto.HousingTypeName,
+                HousingTypeId = housingDto.HousingTypeId,
                 GenderType = housingDto.GenderType,
                 IsFurnished = housingDto.IsFurnished,
                 IsAvailable = housingDto.IsAvailable,
@@ -134,7 +134,7 @@ namespace Student_Housing_Platform.Controllers
             // Get current logged-in user
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); if (string.IsNullOrEmpty(userId)) { return Unauthorized(new { Message = "User ID not found in token." }); }
 
-            var housingType = await _housingTypeRepository.GetHousingTypeDtoByNameAsync(updateHousingDto.HousingTypeName);
+            var housingType = await _housingTypeRepository.GetHousingTypeDtoByIdAsync(updateHousingDto.HousingTypeId);
             if (housingType == null)
             {
                 return BadRequest(new { Message = "Invalid HousingTypeId . Housing type does not exist." });

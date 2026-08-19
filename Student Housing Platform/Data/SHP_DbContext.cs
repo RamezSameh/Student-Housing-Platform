@@ -85,6 +85,7 @@ namespace Student_Housing_Platform.Data
                 b.HasKey(h => h.HousingId);
                 b.HasOne(h => h.Owner).WithMany().HasForeignKey(h => h.OwnerId).OnDelete(DeleteBehavior.Restrict);
                 b.HasIndex(h => h.OwnerId);
+                b.HasOne(h => h.HousingType).WithMany(ht => ht.Housings).HasForeignKey(h => h.HousingTypeId).OnDelete(DeleteBehavior.Restrict);
                 b.HasIndex(h => h.City);
                 b.Property(h => h.Price).HasColumnType("decimal(18,2)");
             });

@@ -57,7 +57,49 @@ namespace Student_Housing_Platform.Data
                 await context.Amenities.AddRangeAsync(ams, cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
             }
+            // sample housing types
+            if (!await context.HousingTypes.AnyAsync(cancellationToken))
+            {
+                var housingTypes = new List<HousingType>
+    {
+        new HousingType
+        {
+            HousingTypeName = "Apartment",
+            Description = "Private apartment",
+            Capacity = 4,
+            PricePerMonth = 2500
+        },
+        new HousingType
+        {
+            HousingTypeName = "Room",
+            Description = "Private student room",
+            Capacity = 1,
+            PricePerMonth = 1800
+        },
+        new HousingType
+        {
+            HousingTypeName = "Shared Housing",
+            Description = "Shared student accommodation",
+            Capacity = 2,
+            PricePerMonth = 1200
+        }
+    };
 
+                await context.HousingTypes.AddRangeAsync(
+                    housingTypes,
+                    cancellationToken);
+
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            var apartmentType = await context.HousingTypes
+    .FirstAsync(
+        x => x.HousingTypeName == "Apartment",
+        cancellationToken);
+
+            var roomType = await context.HousingTypes
+                .FirstAsync(
+                    x => x.HousingTypeName == "Room",
+                    cancellationToken);
             // sample housings by owner
             if (!await context.Housings.AnyAsync(cancellationToken))
             {
@@ -73,7 +115,9 @@ namespace Student_Housing_Platform.Data
                     IsFurnished = true,
                     IsAvailable = true,
                     OwnerId = owner.Id,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    HousingTypeId = apartmentType.HousingTypeId
+
                 };
                 var h2 = new Housing
                 {
@@ -87,7 +131,8 @@ namespace Student_Housing_Platform.Data
                     IsFurnished = false,
                     IsAvailable = true,
                     OwnerId = owner.Id,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    HousingTypeId = roomType.HousingTypeId,
                 };
                 await context.Housings.AddRangeAsync(new[] { h1, h2 }, cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);

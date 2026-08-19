@@ -67,7 +67,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
 
             if (minPrice.HasValue) query = query.Where(h => h.Price >= minPrice.Value);
             if (maxPrice.HasValue) query = query.Where(h => h.Price <= maxPrice.Value);
-            if (!string.IsNullOrEmpty(housingTypeName)) query = query.Where(h => h.HousingType.Name == housingTypeName);
+            if (!string.IsNullOrEmpty(housingTypeName)) query = query.Where(h => h.HousingType.HousingTypeName == housingTypeName);
             if (!string.IsNullOrEmpty(genderType)) query = query.Where(h => h.GenderType == genderType);
             if (isFurnished.HasValue) query = query.Where(h => h.IsFurnished == isFurnished.Value);
 
@@ -102,7 +102,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             }
 
             // Project minimal fields to reduce data transfer
-            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.HousingTypeName, h.IsFurnished }).ToListAsync(cancellationToken);
+            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.HousingType.HousingTypeName, h.IsFurnished }).ToListAsync(cancellationToken);
 
             // Bulk ratings
             var housingIds = candidates.Select(c => c.HousingId).ToList();
@@ -226,7 +226,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 Latitude = dto.Latitude,
                 Longitude = dto.Longitude,
                 Price = dto.Price,
-                HousingTypeName = dto.HousingTypeName,
+                HousingTypeId = dto.HousingTypeId,
                 GenderType = dto.GenderType,
                 IsFurnished = dto.IsFurnished,
                 IsAvailable = dto.IsAvailable,
@@ -255,7 +255,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             entity.Latitude = dto.Latitude;
             entity.Longitude = dto.Longitude;
             entity.Price = dto.Price;
-            entity.HousingTypeName = dto.HousingTypeName;
+            entity.HousingTypeId = dto.HousingTypeId;
             entity.GenderType = dto.GenderType;
             entity.IsFurnished = dto.IsFurnished;
             entity.IsAvailable = dto.IsAvailable;
