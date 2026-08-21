@@ -6,6 +6,7 @@ using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using System.Security.Claims;
 using Student_Housing_Platform.Services.CloudinaryService;
 
+
 namespace Student_Housing_Platform.Controllers
 {
     [ApiController]
@@ -13,12 +14,14 @@ namespace Student_Housing_Platform.Controllers
     public class HousingsController : ControllerBase
     {
         private readonly IHousingRepository _repo;
+        private readonly IHousingTypeRepository _housingTypeRepository;
         private readonly Student_Housing_Platform.Services.Recommendation.IRecommendationService _recommendationService;
         private readonly ICloudinaryService _cloudinary;
 
-        public HousingsController(IHousingRepository repo, Student_Housing_Platform.Services.Recommendation.IRecommendationService recommendationService)
+        public HousingsController(IHousingRepository repo, IHousingTypeRepository housingTypeRepository, Student_Housing_Platform.Services.Recommendation.IRecommendationService recommendationService)
         {
             _repo = repo;
+            _housingTypeRepository = housingTypeRepository;
             _recommendationService = recommendationService;
         }
 
@@ -114,6 +117,19 @@ namespace Student_Housing_Platform.Controllers
                 totalPages = result.TotalPages
             };
             return Ok(response);
+        }
+
+        // GET: /api/housings/types
+        [HttpGet("types")]
+        public async Task<IActionResult> GetHousingTypes()
+        {
+            var housingTypes =
+                await _housingTypeRepository.GetAllHousingTypesAsync();
+
+            return Ok(new
+            {
+                items = housingTypes
+            });
         }
 
         // GET: /api/housings

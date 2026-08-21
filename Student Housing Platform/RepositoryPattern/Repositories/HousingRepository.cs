@@ -13,22 +13,40 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         private readonly SHP_DbContext _context;
         private readonly IDistanceCalculator _distanceCalculator;
 
-        public HousingRepository(SHP_DbContext context, IDistanceCalculator distanceCalculator)
+        public HousingRepository(
+            SHP_DbContext context,
+            IDistanceCalculator distanceCalculator)
         {
             _context = context;
             _distanceCalculator = distanceCalculator;
         }
 
+        // =========================================================
+        // Get Owner Id
+        // =========================================================
+
         public async Task<string?> GetOwnerIdAsync(int housingId)
         {
-            var h = await _context.Housings.FindAsync(housingId);
-            return h?.OwnerId;
+            var housing = await _context.Housings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.HousingId == housingId);
+
+            return housing?.OwnerId;
         }
+
+        // =========================================================
+        // Get Image By Id
+        // =========================================================
 
         public async Task<HousingImage?> GetImageByIdAsync(int imageId)
         {
-            return await _context.HousingImages.FindAsync(imageId);
+            return await _context.HousingImages
+                .FindAsync(imageId);
         }
+
+        // =========================================================
+        // Search Housing
+        // =========================================================
 
         public async Task<PagedResultDto<HousingListItemDto>> SearchAsync(
             int? universityId = null,
@@ -47,175 +65,497 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
-            double? uniLat = null;
-            double? uniLon = null;
+            // -----------------------------------------------------
+            // Validate pagination
+            // -----------------------------------------------------
+
+            if (page <= 0)
+                page = 1;
+
+            if (pageSize <= 0)
+                pageSize = 20;
+
+            // -----------------------------------------------------
+            // Get University Coordinates
+            // -----------------------------------------------------
+
+            double? universityLatitude = null;
+            double? universityLongitude = null;
+
             if (universityId.HasValue)
             {
-                var uni = await _context.Universities.AsNoTracking().FirstOrDefaultAsync(u => u.UniversityId == universityId.Value, cancellationToken);
-                if (uni != null)
+                var university = await _context.Universities
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        u => u.UniversityId == universityId.Value,
+                        cancellationToken);
+
+                if (university == null)
                 {
-                    uniLat = uni.Latitude;
-                    uniLon = uni.Longitude;
+                    return new PagedResultDto<HousingListItemDto>
+                    {
+                        Items = Enumerable.Empty<HousingListItemDto>(),
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalCount = 0
+                    };
                 }
+
+                universityLatitude = university.Latitude;
+                universityLongitude = university.Longitude;
             }
 
-            if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 20;
+            // -----------------------------------------------------
+            // Base Housing Query
+            // -----------------------------------------------------
 
-            // Base query with server-side filters
-            var query = _context.Housings.AsNoTracking().Where(h => h.IsAvailable);
+            var query = _context.Housings
+                .AsNoTracking()
+                .Where(h => h.IsAvailable);
 
-            if (minPrice.HasValue) query = query.Where(h => h.Price >= minPrice.Value);
-            if (maxPrice.HasValue) query = query.Where(h => h.Price <= maxPrice.Value);
-            if (!string.IsNullOrEmpty(housingTypeName)) query = query.Where(h => h.HousingType.HousingTypeName == housingTypeName);
-            if (!string.IsNullOrEmpty(genderType)) query = query.Where(h => h.GenderType == genderType);
-            if (isFurnished.HasValue) query = query.Where(h => h.IsFurnished == isFurnished.Value);
+            // -----------------------------------------------------
+            // Price Filters
+            // -----------------------------------------------------
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(h =>
+                    h.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(h =>
+                    h.Price <= maxPrice.Value);
+            }
+
+            // -----------------------------------------------------
+            // Housing Type
+            // -----------------------------------------------------
+
+            if (!string.IsNullOrWhiteSpace(housingTypeName))
+            {
+                query = query.Where(h =>
+                    h.HousingType.HousingTypeName == housingTypeName);
+            }
+
+            // -----------------------------------------------------
+            // Gender
+            // -----------------------------------------------------
+
+            if (!string.IsNullOrWhiteSpace(genderType))
+            {
+                query = query.Where(h =>
+                    h.GenderType == genderType);
+            }
+
+            // -----------------------------------------------------
+            // Furnished
+            // -----------------------------------------------------
+
+            if (isFurnished.HasValue)
+            {
+                query = query.Where(h =>
+                    h.IsFurnished == isFurnished.Value);
+            }
+
+            // -----------------------------------------------------
+            // Room Type
+            // -----------------------------------------------------
+
+            if (!string.IsNullOrWhiteSpace(roomType))
+            {
+                query = query.Where(h =>
+                    h.Rooms != null &&
+                    h.Rooms.Any(r =>
+                        r.RoomType == roomType));
+            }
+
+            // -----------------------------------------------------
+            // Amenities
+            // -----------------------------------------------------
 
             if (amenities != null && amenities.Any())
             {
-                // housings that contain all requested amenities
                 foreach (var amenityId in amenities)
                 {
-                    var id = amenityId;
-                    query = query.Where(h => h.HousingAmenities.Any(ha => ha.AmenityId == id));
+                    var currentAmenityId = amenityId;
+
+                    query = query.Where(h =>
+                        h.HousingAmenities != null &&
+                        h.HousingAmenities.Any(
+                            ha => ha.AmenityId == currentAmenityId));
                 }
             }
 
-            if (!string.IsNullOrEmpty(roomType))
+            // -----------------------------------------------------
+            // Bounding Box
+            //
+            // Used only when:
+            // university + maxDistance are available.
+            // This reduces the number of candidate housings.
+            // -----------------------------------------------------
+
+            if (
+                universityLatitude.HasValue &&
+                universityLongitude.HasValue &&
+                maxDistance.HasValue)
             {
-                query = query.Where(h => h.Rooms.Any(r => r.RoomType == roomType));
+                var latitude = universityLatitude.Value;
+                var longitude = universityLongitude.Value;
+
+                var latitudeDegree =
+                    maxDistance.Value / 111.0;
+
+                var longitudeDegree =
+                    maxDistance.Value /
+                    (111.320 *
+                     Math.Cos(latitude * Math.PI / 180.0));
+
+                var minLatitude =
+                    latitude - latitudeDegree;
+
+                var maxLatitude =
+                    latitude + latitudeDegree;
+
+                var minLongitude =
+                    longitude - longitudeDegree;
+
+                var maxLongitude =
+                    longitude + longitudeDegree;
+
+                query = query.Where(h =>
+                    h.Latitude >= minLatitude &&
+                    h.Latitude <= maxLatitude &&
+                    h.Longitude >= minLongitude &&
+                    h.Longitude <= maxLongitude);
             }
 
-            // Bounding box if distance filter provided
-            double lat = 0, lon = 0;
-            if (maxDistance.HasValue && uniLat.HasValue && uniLon.HasValue)
-            {
-                lat = uniLat.Value;
-                lon = uniLon.Value;
-                var latDegree = maxDistance.Value / 111.0;
-                var lonDegree = maxDistance.Value / (111.320 * Math.Cos(lat * Math.PI / 180.0));
-                var minLat = lat - latDegree;
-                var maxLat = lat + latDegree;
-                var minLon = lon - lonDegree;
-                var maxLon = lon + lonDegree;
-                query = query.Where(h => h.Latitude >= minLat && h.Latitude <= maxLat && h.Longitude >= minLon && h.Longitude <= maxLon);
-            }
+            // -----------------------------------------------------
+            // Get Candidates
+            // -----------------------------------------------------
 
-            // Project minimal fields to reduce data transfer
-            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.HousingType.HousingTypeName, h.IsFurnished }).ToListAsync(cancellationToken);
-
-            // Bulk ratings
-            var housingIds = candidates.Select(c => c.HousingId).ToList();
-            var ratings = await _context.HousingReviews.Where(r => housingIds.Contains(r.HousingId))
-                .GroupBy(r => r.HousingId)
-                .Select(g => new { HousingId = g.Key, Avg = g.Average(x => x.Rating) })
+            var candidates = await query
+                .Select(h => new
+                {
+                    h.HousingId,
+                    h.Title,
+                    h.Price,
+                    h.Latitude,
+                    h.Longitude,
+                    h.IsVerified,
+                    h.City,
+                    h.IsFurnished,
+                    HousingTypeName =
+                        h.HousingType.HousingTypeName
+                })
                 .ToListAsync(cancellationToken);
 
-            var results = candidates.Select(item => new HousingListItemDto
-            {
-                Id = item.HousingId,
-                Title = item.Title,
-                Price = item.Price,
-                DistanceKm = (uniLat.HasValue && uniLon.HasValue) ? _distanceCalculator.CalculateDistanceKm(uniLat.Value, uniLon.Value, item.Latitude, item.Longitude) : 0,
-                Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
-                IsVerified = item.IsVerified,
-                City = item.City
-            }).ToList();
+            // -----------------------------------------------------
+            // Get Ratings
+            // -----------------------------------------------------
 
-            // Apply distance and rating filters in-memory
-            if (maxDistance.HasValue)
+            var housingIds = candidates
+                .Select(h => h.HousingId)
+                .ToList();
+
+            var ratings = new List<dynamic>();
+
+            if (housingIds.Any())
             {
-                results = results.Where(r => r.DistanceKm <= maxDistance.Value).ToList();
+                ratings = await _context.HousingReviews
+                    .Where(r =>
+                        housingIds.Contains(r.HousingId))
+                    .GroupBy(r => r.HousingId)
+                    .Select(g => new
+                    {
+                        HousingId = g.Key,
+                        Avg = g.Average(x => x.Rating)
+                    })
+                    .Cast<dynamic>()
+                    .ToListAsync(cancellationToken);
             }
+
+            // -----------------------------------------------------
+            // Map Results
+            // -----------------------------------------------------
+
+            var results = candidates
+                .Select(item =>
+                {
+                    double distance = 0;
+
+                    if (
+                        universityLatitude.HasValue &&
+                        universityLongitude.HasValue)
+                    {
+                        distance =
+                            _distanceCalculator
+                                .CalculateDistanceKm(
+                                    universityLatitude.Value,
+                                    universityLongitude.Value,
+                                    item.Latitude,
+                                    item.Longitude);
+                    }
+
+                    var rating =
+                        ratings
+                            .FirstOrDefault(
+                                r => r.HousingId == item.HousingId)
+                            ?.Avg ?? 0;
+
+                    return new HousingListItemDto
+                    {
+                        Id = item.HousingId,
+                        Title = item.Title,
+                        Price = item.Price,
+                        DistanceKm = distance,
+                        Rating = rating,
+                        IsVerified = item.IsVerified,
+                        City = item.City
+                    };
+                })
+                .ToList();
+
+            // -----------------------------------------------------
+            // Maximum Distance Filter
+            // -----------------------------------------------------
+
+            if (
+                maxDistance.HasValue &&
+                universityLatitude.HasValue &&
+                universityLongitude.HasValue)
+            {
+                results = results
+                    .Where(h =>
+                        h.DistanceKm <= maxDistance.Value)
+                    .ToList();
+            }
+
+            // -----------------------------------------------------
+            // Minimum Rating
+            // -----------------------------------------------------
+
             if (minimumRating.HasValue)
             {
-                results = results.Where(r => r.Rating >= minimumRating.Value).ToList();
+                results = results
+                    .Where(h =>
+                        h.Rating >= minimumRating.Value)
+                    .ToList();
             }
 
+            // -----------------------------------------------------
             // Sorting
-            sortBy = sortBy?.ToLowerInvariant() ?? "distance";
-            sortDirection = sortDirection?.ToLowerInvariant() ?? "asc";
+            // -----------------------------------------------------
+
+            sortBy =
+                sortBy?.ToLowerInvariant() ?? "distance";
+
+            sortDirection =
+                sortDirection?.ToLowerInvariant() ?? "asc";
+
             results = (sortBy, sortDirection) switch
             {
-                ("price", "asc") => results.OrderBy(r => r.Price).ToList(),
-                ("price", "desc") => results.OrderByDescending(r => r.Price).ToList(),
-                ("rating", "desc") => results.OrderByDescending(r => r.Rating).ToList(),
-                ("rating", "asc") => results.OrderBy(r => r.Rating).ToList(),
-                ("newest", _) => results.OrderByDescending(r => r.Id).ToList(),
-                _ => results.OrderBy(r => r.DistanceKm).ToList()
+                // Price
+                ("price", "asc") =>
+                    results
+                        .OrderBy(h => h.Price)
+                        .ToList(),
+
+                ("price", "desc") =>
+                    results
+                        .OrderByDescending(h => h.Price)
+                        .ToList(),
+
+                // Rating
+                ("rating", "asc") =>
+                    results
+                        .OrderBy(h => h.Rating)
+                        .ToList(),
+
+                ("rating", "desc") =>
+                    results
+                        .OrderByDescending(h => h.Rating)
+                        .ToList(),
+
+                // Distance
+                ("distance", "asc") =>
+                    results
+                        .OrderBy(h => h.DistanceKm)
+                        .ToList(),
+
+                ("distance", "desc") =>
+                    results
+                        .OrderByDescending(h => h.DistanceKm)
+                        .ToList(),
+
+                // Newest
+                ("newest", _) =>
+                    results
+                        .OrderByDescending(h => h.Id)
+                        .ToList(),
+
+                // Default
+                _ =>
+                    results
+                        .OrderBy(h => h.DistanceKm)
+                        .ToList()
             };
 
-            var total = results.Count;
-            var items = results.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            // -----------------------------------------------------
+            // Pagination
+            // -----------------------------------------------------
+
+            var totalCount = results.Count;
+
+            var items = results
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // -----------------------------------------------------
+            // Return
+            // -----------------------------------------------------
 
             return new PagedResultDto<HousingListItemDto>
             {
                 Items = items,
                 Page = page,
                 PageSize = pageSize,
-                TotalCount = total
+                TotalCount = totalCount
             };
         }
 
-        public async Task<IEnumerable<HousingListItemDto>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
+        // =========================================================
+        // Get By Ids
+        // =========================================================
+
+        public async Task<IEnumerable<HousingListItemDto>> GetByIdsAsync(
+            IEnumerable<int> ids,
+            CancellationToken cancellationToken = default)
         {
-            var list = await _context.Housings.AsNoTracking()
-                .Where(h => ids.Contains(h.HousingId))
-                .Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City })
+            var idList = ids.ToList();
+
+            var list = await _context.Housings
+                .AsNoTracking()
+                .Where(h =>
+                    idList.Contains(h.HousingId))
+                .Select(h => new
+                {
+                    h.HousingId,
+                    h.Title,
+                    h.Price,
+                    h.Latitude,
+                    h.Longitude,
+                    h.IsVerified,
+                    h.City
+                })
                 .ToListAsync(cancellationToken);
 
-            var housingIds = list.Select(i => i.HousingId).ToList();
+            var housingIds = list
+                .Select(h => h.HousingId)
+                .ToList();
+
             var ratings = await _context.HousingReviews
-                .Where(r => housingIds.Contains(r.HousingId))
+                .Where(r =>
+                    housingIds.Contains(r.HousingId))
                 .GroupBy(r => r.HousingId)
-                .Select(g => new { HousingId = g.Key, Avg = g.Average(x => x.Rating) })
+                .Select(g => new
+                {
+                    HousingId = g.Key,
+                    Avg = g.Average(x => x.Rating)
+                })
                 .ToListAsync(cancellationToken);
 
-            var mapped = list.Select(item => new HousingListItemDto
-            {
-                Id = item.HousingId,
-                Title = item.Title,
-                Price = item.Price,
-                DistanceKm = 0,
-                Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
-                IsVerified = item.IsVerified,
-                City = item.City
-            }).ToList();
-
-            return mapped;
+            return list
+                .Select(item => new HousingListItemDto
+                {
+                    Id = item.HousingId,
+                    Title = item.Title,
+                    Price = item.Price,
+                    DistanceKm = 0,
+                    Rating =
+                        ratings
+                            .FirstOrDefault(
+                                r => r.HousingId == item.HousingId)
+                            ?.Avg ?? 0,
+                    IsVerified = item.IsVerified,
+                    City = item.City
+                })
+                .ToList();
         }
 
-        public async Task<IEnumerable<Student_Housing_Platform.Dtos.HousingDtos.CompareHousingDto>> GetCompareByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
+        // =========================================================
+        // Compare Housing
+        // =========================================================
+
+        public async Task<IEnumerable<CompareHousingDto>> GetCompareByIdsAsync(
+            IEnumerable<int> ids,
+            CancellationToken cancellationToken = default)
         {
-            var list = await _context.Housings.AsNoTracking()
-                .Where(h => ids.Contains(h.HousingId))
-                .Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, h.IsFurnished, h.IsAvailable })
+            var idList = ids.ToList();
+
+            var list = await _context.Housings
+                .AsNoTracking()
+                .Where(h =>
+                    idList.Contains(h.HousingId))
+                .Select(h => new
+                {
+                    h.HousingId,
+                    h.Title,
+                    h.Price,
+                    h.Latitude,
+                    h.Longitude,
+                    h.IsVerified,
+                    h.City,
+                    h.IsFurnished,
+                    h.IsAvailable
+                })
                 .ToListAsync(cancellationToken);
 
-            var housingIds = list.Select(i => i.HousingId).ToList();
+            var housingIds = list
+                .Select(h => h.HousingId)
+                .ToList();
+
             var ratings = await _context.HousingReviews
-                .Where(r => housingIds.Contains(r.HousingId))
+                .Where(r =>
+                    housingIds.Contains(r.HousingId))
                 .GroupBy(r => r.HousingId)
-                .Select(g => new { HousingId = g.Key, Avg = g.Average(x => x.Rating) })
+                .Select(g => new
+                {
+                    HousingId = g.Key,
+                    Avg = g.Average(x => x.Rating)
+                })
                 .ToListAsync(cancellationToken);
 
-            var results = list.Select(item => new Student_Housing_Platform.Dtos.HousingDtos.CompareHousingDto
-            {
-                Id = item.HousingId,
-                Title = item.Title,
-                Price = item.Price,
-                DistanceKm = 0, // client can request distance if needed
-                Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
-                HousingTypes = string.Empty,
-                Amenities = string.Empty,
-                IsFurnished = item.IsFurnished,
-                IsAvailable = item.IsAvailable
-            }).ToList();
-
-            return results;
+            return list
+                .Select(item => new CompareHousingDto
+                {
+                    Id = item.HousingId,
+                    Title = item.Title,
+                    Price = item.Price,
+                    DistanceKm = 0,
+                    Rating =
+                        ratings
+                            .FirstOrDefault(
+                                r => r.HousingId == item.HousingId)
+                            ?.Avg ?? 0,
+                    HousingTypes = string.Empty,
+                    Amenities = string.Empty,
+                    IsFurnished = item.IsFurnished,
+                    IsAvailable = item.IsAvailable
+                })
+                .ToList();
         }
 
-        public async Task<int> CreateAsync(CreateHousingDto dto, string ownerId, CancellationToken cancellationToken = default)
+        // =========================================================
+        // Create Housing
+        // =========================================================
+
+        public async Task<int> CreateAsync(
+            CreateHousingDto dto,
+            string ownerId,
+            CancellationToken cancellationToken = default)
         {
             var entity = new Housing
             {
@@ -231,22 +571,46 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 IsFurnished = dto.IsFurnished,
                 IsAvailable = dto.IsAvailable,
                 OwnerId = ownerId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+
+                Location =
+                    new NetTopologySuite.Geometries.Point(
+                        dto.Longitude,
+                        dto.Latitude)
+                    {
+                        SRID = 4326
+                    }
             };
-            await _context.Housings.AddAsync(entity, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
+
+            await _context.Housings
+                .AddAsync(entity, cancellationToken);
+
+            await _context.SaveChangesAsync(
+                cancellationToken);
+
             return entity.HousingId;
         }
 
-        public async Task<bool> UpdateAsync(int id, UpdateHousingDto dto, string userId)
+        // =========================================================
+        // Update Housing
+        // =========================================================
+
+        public async Task<bool> UpdateAsync(
+            int id,
+            UpdateHousingDto dto,
+            string userId)
         {
-            var entity = await _context.Housings.FindAsync(id);
-            if (entity == null) return false;
-            // only owner or admin should update - controller will check, but double-check here
-            if (entity.OwnerId != userId)
-            {
+            var entity = await _context.Housings
+                .FindAsync(id);
+
+            if (entity == null)
                 return false;
-            }
+
+            // Only owner can update.
+            // Admin authorization is handled in Controller,
+            // but repository still checks ownership.
+            if (entity.OwnerId != userId)
+                return false;
 
             entity.Title = dto.Title.Trim();
             entity.Description = dto.Description;
@@ -261,29 +625,73 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             entity.IsAvailable = dto.IsAvailable;
             entity.IsVerified = dto.IsVerified;
             entity.UpdatedAt = DateTime.UtcNow;
-            // update spatial location
-            entity.Location = new NetTopologySuite.Geometries.Point(dto.Longitude, dto.Latitude) { SRID = 4326 };
+
+            entity.Location =
+                new NetTopologySuite.Geometries.Point(
+                    dto.Longitude,
+                    dto.Latitude)
+                {
+                    SRID = 4326
+                };
 
             _context.Housings.Update(entity);
+
             await _context.SaveChangesAsync();
+
             return true;
         }
 
-        public async Task<bool> DeleteAsync(int id, string userId)
+        // =========================================================
+        // Delete Housing
+        // =========================================================
+
+        public async Task<bool> DeleteAsync(
+            int id,
+            string userId)
         {
-            var entity = await _context.Housings.FindAsync(id);
-            if (entity == null) return false;
-            if (entity.OwnerId != userId)
-            {
+            var entity = await _context.Housings
+                .FindAsync(id);
+
+            if (entity == null)
                 return false;
-            }
+
+            if (entity.OwnerId != userId)
+                return false;
+
             _context.Housings.Remove(entity);
+
             await _context.SaveChangesAsync();
+
             return true;
         }
 
-        public async Task AddHousingImageAsync(int housingId, string imageUrl, string publicId, bool isPrimary = false)
+        // =========================================================
+        // Add Housing Image
+        // =========================================================
+
+        public async Task AddHousingImageAsync(
+            int housingId,
+            string imageUrl,
+            string publicId,
+            bool isPrimary = false)
         {
+            // If this image is primary,
+            // remove primary status from old images.
+            if (isPrimary)
+            {
+                var oldPrimaryImages =
+                    await _context.HousingImages
+                        .Where(i =>
+                            i.HousingId == housingId &&
+                            i.IsPrimary)
+                        .ToListAsync();
+
+                foreach (var image in oldPrimaryImages)
+                {
+                    image.IsPrimary = false;
+                }
+            }
+
             var img = new HousingImage
             {
                 HousingId = housingId,
@@ -292,95 +700,233 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 IsPrimary = isPrimary,
                 CreatedAt = DateTime.UtcNow
             };
-            await _context.HousingImages.AddAsync(img);
+
+            await _context.HousingImages
+                .AddAsync(img);
+
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteHousingImageAsync(int imageId)
+        // =========================================================
+        // Delete Housing Image
+        // =========================================================
+
+        public async Task<bool> DeleteHousingImageAsync(
+            int imageId)
         {
-            var img = await _context.HousingImages.FindAsync(imageId);
-            if (img == null) return false;
+            var img = await _context.HousingImages
+                .FindAsync(imageId);
+
+            if (img == null)
+                return false;
+
             _context.HousingImages.Remove(img);
+
             await _context.SaveChangesAsync();
+
             return true;
         }
 
-        public async Task<HousingListItemDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        // =========================================================
+        // Get Housing By Id
+        // =========================================================
+
+        public async Task<HousingListItemDto?> GetByIdAsync(
+            int id,
+            CancellationToken cancellationToken = default)
         {
-            var h = await _context.Housings.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.HousingId == id, cancellationToken);
-            if (h == null) return null;
+            var housing = await _context.Housings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    h => h.HousingId == id,
+                    cancellationToken);
+
+            if (housing == null)
+                return null;
+
+            var rating = await _context.HousingReviews
+                .Where(r => r.HousingId == id)
+                .Select(r => (double?)r.Rating)
+                .AverageAsync(cancellationToken)
+                ?? 0;
+
             return new HousingListItemDto
             {
-                Id = h.HousingId,
-                Title = h.Title,
-                Price = h.Price,
+                Id = housing.HousingId,
+                Title = housing.Title,
+                Price = housing.Price,
                 DistanceKm = 0,
-                Rating = 0,
-                IsVerified = h.IsVerified,
-                City = h.City
+                Rating = rating,
+                IsVerified = housing.IsVerified,
+                City = housing.City
             };
         }
 
-        public async Task<PagedResultDto<HousingListItemDto>> GetNearbyAsync(int universityId, double radiusKm, int page, int pageSize, CancellationToken cancellationToken = default)
+        // =========================================================
+        // Get Nearby Housing
+        // =========================================================
+
+        public async Task<PagedResultDto<HousingListItemDto>> GetNearbyAsync(
+            int universityId,
+            double radiusKm,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
         {
-            var uni = await _context.Universities.AsNoTracking().FirstOrDefaultAsync(u => u.UniversityId == universityId, cancellationToken);
-            if (uni == null)
+            var university = await _context.Universities
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    u => u.UniversityId == universityId,
+                    cancellationToken);
+
+            if (university == null)
             {
-                return new PagedResultDto<HousingListItemDto> { Items = Enumerable.Empty<HousingListItemDto>(), Page = page, PageSize = pageSize, TotalCount = 0 };
+                return new PagedResultDto<HousingListItemDto>
+                {
+                    Items =
+                        Enumerable.Empty<HousingListItemDto>(),
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalCount = 0
+                };
             }
 
-            if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 20;
+            if (page <= 0)
+                page = 1;
 
-            // bounding box to reduce candidates
-            var lat = uni.Latitude;
-            var lon = uni.Longitude;
-            var latDegree = radiusKm / 111.0; // approx degrees per km
-            var lonDegree = radiusKm / (111.320 * Math.Cos(lat * Math.PI / 180.0));
+            if (pageSize <= 0)
+                pageSize = 20;
 
-            var minLat = lat - latDegree;
-            var maxLat = lat + latDegree;
-            var minLon = lon - lonDegree;
-            var maxLon = lon + lonDegree;
+            if (radiusKm <= 0)
+                radiusKm = 2;
 
-            var query = _context.Housings.AsNoTracking()
-                .Where(h => h.IsAvailable && h.Latitude >= minLat && h.Latitude <= maxLat && h.Longitude >= minLon && h.Longitude <= maxLon)
-                .Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City });
+            var latitude = university.Latitude;
+            var longitude = university.Longitude;
 
-            var list = await query.ToListAsync(cancellationToken);
+            // -----------------------------------------------------
+            // Bounding Box
+            // -----------------------------------------------------
 
-            // load average ratings for all candidate housings in one query to avoid N+1
-            var housingIds = list.Select(i => i.HousingId).ToList();
-            var ratings = await _context.HousingReviews
-                .Where(r => housingIds.Contains(r.HousingId))
-                .GroupBy(r => r.HousingId)
-                .Select(g => new { HousingId = g.Key, Avg = g.Average(x => x.Rating) })
+            var latitudeDegree =
+                radiusKm / 111.0;
+
+            var longitudeDegree =
+                radiusKm /
+                (111.320 *
+                 Math.Cos(latitude *
+                          Math.PI /
+                          180.0));
+
+            var minLatitude =
+                latitude - latitudeDegree;
+
+            var maxLatitude =
+                latitude + latitudeDegree;
+
+            var minLongitude =
+                longitude - longitudeDegree;
+
+            var maxLongitude =
+                longitude + longitudeDegree;
+
+            // -----------------------------------------------------
+            // Get Candidates
+            // -----------------------------------------------------
+
+            var query = _context.Housings
+                .AsNoTracking()
+                .Where(h =>
+                    h.IsAvailable &&
+                    h.Latitude >= minLatitude &&
+                    h.Latitude <= maxLatitude &&
+                    h.Longitude >= minLongitude &&
+                    h.Longitude <= maxLongitude)
+                .Select(h => new
+                {
+                    h.HousingId,
+                    h.Title,
+                    h.Price,
+                    h.Latitude,
+                    h.Longitude,
+                    h.IsVerified,
+                    h.City
+                });
+
+            var list = await query
                 .ToListAsync(cancellationToken);
 
-            var withDistance = list.Select(item => new HousingListItemDto
-            {
-                Id = item.HousingId,
-                Title = item.Title,
-                Price = item.Price,
-                DistanceKm = _distanceCalculator.CalculateDistanceKm(lat, lon, item.Latitude, item.Longitude),
-                Rating = ratings.FirstOrDefault(r => r.HousingId == item.HousingId)?.Avg ?? 0,
-                IsVerified = item.IsVerified,
-                City = item.City
-            })
-            .Where(h => h.DistanceKm <= radiusKm)
-            .OrderBy(h => h.DistanceKm)
-            .ToList();
+            // -----------------------------------------------------
+            // Ratings
+            // -----------------------------------------------------
 
-            var total = withDistance.Count;
-            var items = withDistance.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var housingIds = list
+                .Select(h => h.HousingId)
+                .ToList();
+
+            var ratings = await _context.HousingReviews
+                .Where(r =>
+                    housingIds.Contains(r.HousingId))
+                .GroupBy(r => r.HousingId)
+                .Select(g => new
+                {
+                    HousingId = g.Key,
+                    Avg = g.Average(x => x.Rating)
+                })
+                .ToListAsync(cancellationToken);
+
+            // -----------------------------------------------------
+            // Calculate Distance
+            // -----------------------------------------------------
+
+            var withDistance = list
+                .Select(item => new HousingListItemDto
+                {
+                    Id = item.HousingId,
+                    Title = item.Title,
+                    Price = item.Price,
+
+                    DistanceKm =
+                        _distanceCalculator
+                            .CalculateDistanceKm(
+                                latitude,
+                                longitude,
+                                item.Latitude,
+                                item.Longitude),
+
+                    Rating =
+                        ratings
+                            .FirstOrDefault(
+                                r => r.HousingId ==
+                                     item.HousingId)
+                            ?.Avg ?? 0,
+
+                    IsVerified = item.IsVerified,
+                    City = item.City
+                })
+                .Where(h =>
+                    h.DistanceKm <= radiusKm)
+                .OrderBy(h =>
+                    h.DistanceKm)
+                .ToList();
+
+            // -----------------------------------------------------
+            // Pagination
+            // -----------------------------------------------------
+
+            var totalCount =
+                withDistance.Count;
+
+            var items = withDistance
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             return new PagedResultDto<HousingListItemDto>
             {
                 Items = items,
                 Page = page,
                 PageSize = pageSize,
-                TotalCount = total
+                TotalCount = totalCount
             };
         }
     }

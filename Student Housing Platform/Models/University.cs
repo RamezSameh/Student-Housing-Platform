@@ -33,5 +33,6 @@ namespace Student_Housing_Platform.Models
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public ICollection<UniversityHousing> UniversityHousings { get; set; } = new List<UniversityHousing>();
     }
 }
