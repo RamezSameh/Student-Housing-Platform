@@ -64,5 +64,6 @@ namespace Student_Housing_Platform.Models
         public ICollection<HousingImage>? Images { get; set; }
         public ICollection<HousingAmenity>? HousingAmenities { get; set; }
         public ICollection<HousingReview>? HousingReviews { get; set; }
+        public ICollection<UniversityHousing> UniversityHousings { get; set; } = new List<UniversityHousing>();
     }
 }

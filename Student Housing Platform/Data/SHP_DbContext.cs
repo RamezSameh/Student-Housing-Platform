@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Student_Housing_Platform.Models;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Student_Housing_Platform.Data
 {
@@ -29,7 +30,7 @@ namespace Student_Housing_Platform.Data
 
         // Universities
         public DbSet<University> Universities { get; set; }
-
+        public DbSet<UniversityHousing> UniversityHousings { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -71,6 +72,20 @@ namespace Student_Housing_Platform.Data
                 .HasForeignKey(ri => ri.HousingId).OnDelete(DeleteBehavior.Cascade);
 
             // University configuration
+            builder.Entity<UniversityHousing>()
+    .HasIndex(x => new { x.UniversityId, x.HousingId })
+    .IsUnique();
+            builder.Entity<UniversityHousing>()
+    .HasOne(x => x.University)
+    .WithMany(u => u.UniversityHousings)
+    .HasForeignKey(x => x.UniversityId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UniversityHousing>()
+                .HasOne(x => x.Housing)
+                .WithMany(h => h.UniversityHousings)
+                .HasForeignKey(x => x.HousingId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<University>(b =>
             {
                 b.HasKey(u => u.UniversityId);
