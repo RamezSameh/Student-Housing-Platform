@@ -18,11 +18,12 @@ namespace Student_Housing_Platform.Controllers
         private readonly Student_Housing_Platform.Services.Recommendation.IRecommendationService _recommendationService;
         private readonly ICloudinaryService _cloudinary;
 
-        public HousingsController(IHousingRepository repo, IHousingTypeRepository housingTypeRepository, Student_Housing_Platform.Services.Recommendation.IRecommendationService recommendationService)
+        public HousingsController(IHousingRepository repo, IHousingTypeRepository housingTypeRepository, Student_Housing_Platform.Services.Recommendation.IRecommendationService recommendationService , ICloudinaryService cloudinaryService)
         {
             _repo = repo;
             _housingTypeRepository = housingTypeRepository;
             _recommendationService = recommendationService;
+            _cloudinary = cloudinaryService;
         }
 
         // GET: /api/housings/nearby?universityId=1&radius=2&page=1&pageSize=20
