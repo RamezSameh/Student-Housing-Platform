@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Home, Search, Heart, User } from "lucide-react";
+import { Home, Heart, User, CalendarDays } from "lucide-react";
 
 function Navbar() {
   return (
@@ -46,14 +46,24 @@ function Navbar() {
           </Link>
         </div>
 
+        <Link
+          to="/my-bookings"
+          className="flex items-center gap-2"
+        >
+          <CalendarDays size={18} />
+          My Bookings
+        </Link>
+
         {/* Actions */}
         <div className="flex items-center gap-3">
 
           <Link
             to="/favorites"
-            className="hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-red-500 sm:block"
+            className="flex items-center gap-2 rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-red-500 "
           >
-            <Heart size={20} />
+            <Heart size={18} />
+
+            Favorites
           </Link>
 
           <Link

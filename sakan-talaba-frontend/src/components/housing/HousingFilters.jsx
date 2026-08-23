@@ -16,8 +16,11 @@ function HousingFilters({
   return (
     <div className="mb-8 rounded-2xl bg-white p-6 shadow-md">
 
-      {/* Header */}
-      <div className="mb-5">
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
+      <div className="mb-6">
         <h2 className="text-xl font-bold text-gray-900">
           Search & Filters
         </h2>
@@ -27,54 +30,65 @@ function HousingFilters({
         </p>
       </div>
 
+      {/* =====================================================
+          Filters
+      ===================================================== */}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
         {/* University */}
-<div>
-    <label className="mb-2 block text-sm font-medium text-gray-700">
-      University
-    </label>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            University
+          </label>
 
-    <select
-      value={filters.universityId}
-      onChange={(e) =>
-        updateFilter("universityId", e.target.value)
-      }
-      className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-    >
-      <option value="">
-        All Universities
-      </option>
+          <select
+            value={filters.universityId ?? ""}
+            onChange={(e) =>
+              updateFilter(
+                "universityId",
+                e.target.value
+              )
+            }
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
+          >
+            <option value="">
+              All Universities
+            </option>
 
-      {universities.map((university) => (
-        <option
-          key={university.universityId}
-          value={university.universityId}
-        >
-          {university.name}
-        </option>
-      ))}
-    </select>
-  </div>
+            {universities.map((university) => (
+              <option
+                key={university.universityId}
+                value={university.universityId}
+              >
+                {university.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-{/* Maximum Distance */}
-<div>
-  <label className="mb-2 block text-sm font-medium text-gray-700">
-    Maximum Distance (km)
-  </label>
+        {/* Maximum Distance */}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Maximum Distance (km)
+          </label>
 
-  <input
-    type="number"
-    min="0"
-    step="0.5"
-    placeholder="e.g. 5"
-    value={filters.maxDistance}
-    onChange={(e) =>
-      updateFilter("maxDistance", e.target.value)
-    }
-    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-  />
-</div>
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            placeholder="e.g. 5"
+            value={filters.maxDistance ?? ""}
+            onChange={(e) =>
+              updateFilter(
+                "maxDistance",
+                e.target.value
+              )
+            }
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
         {/* Housing Type */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -82,24 +96,43 @@ function HousingFilters({
           </label>
 
           <select
-            value={filters.housingType}
+            value={filters.housingType ?? ""}
             onChange={(e) =>
-              updateFilter("housingType", e.target.value)
+              updateFilter(
+                "housingType",
+                e.target.value
+              )
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
             <option value="">
               All Housing Types
             </option>
 
-            {housingTypes.map((type) => (
-              <option
-                key={type.housingTypeIdDto}
-                value={type.housingTypeNameDto}
-              >
-                {type.housingTypeNameDto}
-              </option>
-            ))}
+            {housingTypes.map((type) => {
+              const id =
+                type.housingTypeId ??
+                type.housingTypeIdDto ??
+                type.id;
+
+              const name =
+                type.housingTypeName ??
+                type.housingTypeNameDto ??
+                type.name;
+
+              if (!name) {
+                return null;
+              }
+
+              return (
+                <option
+                  key={id ?? name}
+                  value={name}
+                >
+                  {name}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -113,11 +146,14 @@ function HousingFilters({
             type="number"
             min="0"
             placeholder="e.g. 1500"
-            value={filters.minPrice}
+            value={filters.minPrice ?? ""}
             onChange={(e) =>
-              updateFilter("minPrice", e.target.value)
+              updateFilter(
+                "minPrice",
+                e.target.value
+              )
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
@@ -131,11 +167,14 @@ function HousingFilters({
             type="number"
             min="0"
             placeholder="e.g. 3000"
-            value={filters.maxPrice}
+            value={filters.maxPrice ?? ""}
             onChange={(e) =>
-              updateFilter("maxPrice", e.target.value)
+              updateFilter(
+                "maxPrice",
+                e.target.value
+              )
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
@@ -146,18 +185,38 @@ function HousingFilters({
           </label>
 
           <select
-            value={filters.minimumRating}
+            value={filters.minimumRating ?? ""}
             onChange={(e) =>
-              updateFilter("minimumRating", e.target.value)
+              updateFilter(
+                "minimumRating",
+                e.target.value
+              )
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">Any Rating</option>
-            <option value="1">⭐ 1+</option>
-            <option value="2">⭐ 2+</option>
-            <option value="3">⭐ 3+</option>
-            <option value="4">⭐ 4+</option>
-            <option value="4.5">⭐ 4.5+</option>
+            <option value="">
+              Any Rating
+            </option>
+
+            <option value="1">
+              ⭐ 1+
+            </option>
+
+            <option value="2">
+              ⭐ 2+
+            </option>
+
+            <option value="3">
+              ⭐ 3+
+            </option>
+
+            <option value="4">
+              ⭐ 4+
+            </option>
+
+            <option value="4.5">
+              ⭐ 4.5+
+            </option>
           </select>
         </div>
 
@@ -168,15 +227,26 @@ function HousingFilters({
           </label>
 
           <select
-            value={filters.isFurnished}
+            value={filters.isFurnished ?? ""}
             onChange={(e) =>
-              updateFilter("isFurnished", e.target.value)
+              updateFilter(
+                "isFurnished",
+                e.target.value
+              )
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">Any</option>
-            <option value="true">Furnished</option>
-            <option value="false">Not Furnished</option>
+            <option value="">
+              Any
+            </option>
+
+            <option value="true">
+              Furnished
+            </option>
+
+            <option value="false">
+              Not Furnished
+            </option>
           </select>
         </div>
 
@@ -187,16 +257,30 @@ function HousingFilters({
           </label>
 
           <select
-            value={filters.sortBy}
+            value={filters.sortBy ?? ""}
             onChange={(e) =>
-              updateFilter("sortBy", e.target.value)
+              updateFilter(
+                "sortBy",
+                e.target.value
+              )
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">Default</option>
-            <option value="price">Price</option>
-            <option value="rating">Rating</option>
-            <option value="distance">Distance</option>
+            <option value="">
+              Default
+            </option>
+
+            <option value="price">
+              Price
+            </option>
+
+            <option value="rating">
+              Rating
+            </option>
+
+            <option value="distance">
+              Distance
+            </option>
           </select>
         </div>
 
@@ -207,11 +291,16 @@ function HousingFilters({
           </label>
 
           <select
-            value={filters.sortDirection}
-            onChange={(e) =>
-              updateFilter("sortDirection", e.target.value)
+            value={
+              filters.sortDirection ?? "asc"
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+            onChange={(e) =>
+              updateFilter(
+                "sortDirection",
+                e.target.value
+              )
+            }
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
             <option value="asc">
               Low → High
@@ -222,10 +311,12 @@ function HousingFilters({
             </option>
           </select>
         </div>
-
       </div>
 
-      {/* Actions */}
+      {/* =====================================================
+          Actions
+      ===================================================== */}
+
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
 
         <button
@@ -243,7 +334,6 @@ function HousingFilters({
         >
           Reset Filters
         </button>
-
       </div>
     </div>
   );

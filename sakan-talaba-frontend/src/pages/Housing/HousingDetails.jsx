@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
+  Navigation,
+  ShieldCheck,
+  Heart,
+  Share2,
+} from "lucide-react";
+
 import { useParams, useNavigate } from "react-router-dom";
+
 import { getHousingById } from "../../services/housingService";
 
 function HousingDetails() {
@@ -7,181 +18,531 @@ function HousingDetails() {
   const navigate = useNavigate();
 
   const [housing, setHousing] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [favorite, setFavorite] =
+    useState(false);
+
+  // ==========================================================
+  // Load Housing
+  // ==========================================================
   useEffect(() => {
     const loadHousing = async () => {
       try {
-        const result = await getHousingById(id);
+        setLoading(true);
+        setError("");
 
-        console.log("Housing Details:", result);
+        const result =
+          await getHousingById(id);
 
-        if (!result.success) {
-          throw new Error("Failed to load housing.");
+        console.log(
+          "Housing Details:",
+          result
+        );
+
+        /*
+         * Backend currently returns:
+         *
+         * {
+         *   success: true,
+         *   data: {...}
+         * }
+         */
+
+        if (
+          result &&
+          result.success === false
+        ) {
+          throw new Error(
+            result.message ||
+            "Failed to load housing."
+          );
         }
 
-        setHousing(result.data);
+        const data =
+          result?.data ??
+          result;
+
+        if (!data) {
+          throw new Error(
+            "Housing not found."
+          );
+        }
+
+        setHousing(data);
       } catch (err) {
-        console.error("Housing Details Error:", err);
+        console.error(
+          "Housing Details Error:",
+          err
+        );
 
         setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Failed to load housing."
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to load housing."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    loadHousing();
+    if (id) {
+      loadHousing();
+    }
   }, [id]);
 
+  // ==========================================================
+  // Loading
+  // ==========================================================
   if (loading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-xl text-gray-600">
-          Loading housing details...
-        </p>
+      <div className="min-h-screen bg-slate-50 px-6 py-10">
+        <div className="mx-auto max-w-5xl">
+
+          <div className="h-8 w-32 animate-pulse rounded bg-slate-200" />
+
+          <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-lg">
+
+            <div className="h-72 animate-pulse bg-slate-200" />
+
+            <div className="space-y-5 p-8">
+              <div className="h-8 w-2/3 animate-pulse rounded bg-slate-200" />
+
+              <div className="h-5 w-1/3 animate-pulse rounded bg-slate-200" />
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[1, 2, 3, 4].map(
+                  (item) => (
+                    <div
+                      key={item}
+                      className="h-28 animate-pulse rounded-xl bg-slate-100"
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
+  // ==========================================================
+  // Error
+  // ==========================================================
   if (error) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <p className="text-red-600">{error}</p>
+      <div className="flex min-h-[500px] flex-col items-center justify-center gap-5 bg-slate-50 px-6">
+
+        <div className="rounded-full bg-red-100 p-4 text-red-600">
+          <MapPin size={30} />
+        </div>
+
+        <h2 className="text-2xl font-bold text-slate-900">
+          Unable to load housing
+        </h2>
+
+        <p className="max-w-md text-center text-slate-500">
+          {error}
+        </p>
 
         <button
+          type="button"
           onClick={() => navigate(-1)}
-          className="rounded-lg bg-blue-600 px-5 py-2 text-white"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white transition hover:bg-blue-700"
         >
+          <ArrowLeft size={18} />
+
           Go Back
         </button>
       </div>
     );
   }
 
+  // ==========================================================
+  // Not Found
+  // ==========================================================
   if (!housing) {
     return (
-      <div className="p-10 text-center">
-        Housing not found.
+      <div className="flex min-h-[500px] items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-slate-900">
+            Housing not found
+          </h2>
+
+          <button
+            type="button"
+            onClick={() => navigate("/housing")}
+            className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white"
+          >
+            Browse Housing
+          </button>
+        </div>
       </div>
     );
   }
 
+  // ==========================================================
+  // Normalize DTO fields
+  // ==========================================================
+  const housingId =
+    housing.housingId ??
+    housing.id ??
+    id;
+
+  const title =
+    housing.title ||
+    "Student Housing";
+
+  const price =
+    Number(housing.price) || 0;
+
+  const rating =
+    Number(housing.rating) || 0;
+
+  const distance =
+    Number(housing.distanceKm);
+
+  const city =
+    housing.city ||
+    "Location not specified";
+
+  const isVerified =
+    housing.isVerified === true;
+
+  const image =
+    housing.imageUrl ||
+    housing.primaryImageUrl ||
+    housing.image ||
+    null;
+  
+  const housingRoomId =
+    housing.housingRoomId ??
+    housing.roomId ??
+    housing.rooms?.[0]?.housingRoomId ??
+    housing.housingRooms?.[0]?.housingRoomId;
+
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
+    <div className="min-h-screen bg-slate-50 px-6 py-10">
+
       <div className="mx-auto max-w-5xl">
 
+        {/* Back */}
         <button
+          type="button"
           onClick={() => navigate(-1)}
-          className="mb-6 text-blue-600 hover:underline"
+          className="mb-6 flex items-center gap-2 font-medium text-blue-600 transition hover:text-blue-700"
         >
-          ← Back to Housing
+          <ArrowLeft size={18} />
+
+          Back to Housing
         </button>
 
+        {/* ====================================================
+            Main Card
+        ==================================================== */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
 
-          {/* Image Placeholder */}
-          <div className="flex h-72 items-center justify-center bg-gray-200">
-            <span className="text-gray-500">
-              Housing Image
-            </span>
+          {/* Image */}
+          <div className="relative h-72 overflow-hidden bg-gradient-to-br from-blue-100 to-slate-200">
+
+            {image ? (
+              <img
+                src={image}
+                alt={title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+
+                  <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white text-blue-600 shadow">
+                    <MapPin size={36} />
+                  </div>
+
+                  <p className="font-medium text-slate-500">
+                    Student Housing
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Favorite */}
+            <button
+              type="button"
+              onClick={() =>
+                setFavorite(
+                  (current) => !current
+                )
+              }
+              className={`absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow ${favorite
+                  ? "text-red-500"
+                  : "text-slate-600"
+                }`}
+            >
+              <Heart
+                size={21}
+                className={
+                  favorite
+                    ? "fill-current"
+                    : ""
+                }
+              />
+            </button>
           </div>
 
+          {/* Content */}
           <div className="p-8">
 
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            {/* Header */}
+            <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
 
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {housing.title}
+                <h1 className="text-3xl font-bold text-slate-900">
+                  {title}
                 </h1>
 
-                <p className="mt-2 text-gray-600">
-                  📍 {housing.city}
-                </p>
+                <div className="mt-2 flex items-center gap-2 text-slate-500">
+                  <MapPin size={17} />
+
+                  {city}
+                </div>
               </div>
 
-              {housing.isVerified && (
-                <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
-                  ✓ Verified
+              {isVerified && (
+                <span className="flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+                  <ShieldCheck size={17} />
+
+                  Verified Housing
                 </span>
               )}
-
             </div>
 
-            {/* Information */}
+            {/* =================================================
+                Information
+            ================================================= */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-              <div className="rounded-xl bg-gray-50 p-5">
-                <p className="text-sm text-gray-500">
-                  Monthly Price
-                </p>
+              {/* Price */}
+              <InfoCard
+                label="Monthly Price"
+                value={`${price.toLocaleString()} EGP`}
+                valueClass="text-blue-600"
+              />
 
-                <p className="mt-2 text-xl font-bold text-blue-600">
-                  {housing.price?.toLocaleString()} EGP
-                </p>
-              </div>
+              {/* Distance */}
+              <InfoCard
+                label="Distance"
+                value={
+                  Number.isFinite(distance) &&
+                    distance > 0
+                    ? `${distance.toFixed(1)} km`
+                    : "Not available"
+                }
+              />
 
-              <div className="rounded-xl bg-gray-50 p-5">
-                <p className="text-sm text-gray-500">
-                  Distance
-                </p>
+              {/* Rating */}
+              <InfoCard
+                label="Rating"
+                value={
+                  rating > 0
+                    ? `⭐ ${rating.toFixed(1)}`
+                    : "No ratings"
+                }
+              />
 
-                <p className="mt-2 text-xl font-bold text-gray-900">
-                  {housing.distanceKm} km
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-gray-50 p-5">
-                <p className="text-sm text-gray-500">
-                  Rating
-                </p>
-
-                <p className="mt-2 text-xl font-bold text-gray-900">
-                  {housing.rating > 0
-                    ? `⭐ ${housing.rating.toFixed(1)}`
-                    : "No ratings"}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-gray-50 p-5">
-                <p className="text-sm text-gray-500">
-                  Location
-                </p>
-
-                <p className="mt-2 text-xl font-bold text-gray-900">
-                  {housing.city}
-                </p>
-              </div>
-
+              {/* Location */}
+              <InfoCard
+                label="Location"
+                value={city}
+              />
             </div>
 
-            {/* Actions */}
+            {/* =================================================
+                Rating / Distance
+            ================================================= */}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+
+              <div className="rounded-xl border border-slate-200 p-5">
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-50 text-yellow-500">
+                    <Star
+                      size={20}
+                      className="fill-current"
+                    />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-slate-500">
+                      Housing Rating
+                    </p>
+
+                    <p className="font-bold text-slate-900">
+                      {rating > 0
+                        ? `${rating.toFixed(1)} / 5`
+                        : "No ratings yet"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 p-5">
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <Navigation size={20} />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-slate-500">
+                      Distance from University
+                    </p>
+
+                    <p className="font-bold text-slate-900">
+                      {Number.isFinite(distance) &&
+                        distance > 0
+                        ? `${distance.toFixed(1)} km`
+                        : "Not available"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* =================================================
+                Actions
+            ================================================= */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
 
               <button
                 type="button"
-                className="flex-1 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+                disabled={!housingRoomId}
+                onClick={() => {
+                  if (!housingRoomId) {
+                    alert(
+                      "No available room was found for this housing."
+                    );
+                    return;
+                  }
+
+                  const params =
+                    new URLSearchParams();
+
+                  params.set(
+                    "housingRoomId",
+                    housingRoomId
+                  );
+
+                  params.set(
+                    "housingTitle",
+                    housing.title ||
+                    "Student Housing"
+                  );
+
+                  navigate(
+                    `/bookings/request?${params.toString()}`
+                  );
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Request Booking
               </button>
 
               <button
                 type="button"
-                className="flex-1 rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() =>
+                  setFavorite(
+                    (current) => !current
+                  )
+                }
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
               >
-                ❤️ Add to Favorites
+                <Heart
+                  size={18}
+                  className={
+                    favorite
+                      ? "fill-red-500 text-red-500"
+                      : ""
+                  }
+                />
+
+                {favorite
+                  ? "Saved"
+                  : "Add to Favorites"}
               </button>
 
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(
+                      window.location.href
+                    );
+
+                    alert(
+                      "Housing link copied."
+                    );
+                  } catch {
+                    alert(
+                      "Unable to copy link."
+                    );
+                  }
+                }}
+                className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                <Share2 size={18} />
+
+                Share
+              </button>
+            </div>
+
+            {/* =================================================
+                ID / Debug-free useful information
+            ================================================= */}
+            <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+              <div className="flex items-center justify-between gap-4">
+                <span>
+                  Housing ID
+                </span>
+
+                <span className="font-semibold text-slate-700">
+                  #{housingId}
+                </span>
+              </div>
             </div>
 
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Info Card
+// ============================================================
+function InfoCard({
+  label,
+  value,
+  valueClass = "text-slate-900",
+}) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-5">
+      <p className="text-sm text-slate-500">
+        {label}
+      </p>
+
+      <p
+        className={`mt-2 line-clamp-2 text-lg font-bold ${valueClass}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
