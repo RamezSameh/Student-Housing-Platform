@@ -112,11 +112,17 @@ function RequestBooking() {
         try {
             setLoading(true);
 
-            const result = await createHousingBooking({
-                housingRoomId: Number(housingRoomId),
-                checkIn: `${checkIn}T00:00:00`,
-                checkOut: `${checkOut}T00:00:00`,
-            });
+            const result =
+                await createHousingBooking({
+                    housingRoomId:
+                        Number(housingRoomId),
+
+                    checkIn:
+                        `${checkIn}T00:00:00`,
+
+                    checkOut:
+                        `${checkOut}T00:00:00`,
+                });
 
             console.log(
                 "Booking Created:",
@@ -125,11 +131,12 @@ function RequestBooking() {
 
             setSuccess(true);
 
-            // Booking created successfully.
-            // Give the user time to see the confirmation.
             setTimeout(() => {
-                navigate("/my-bookings");
+                navigate(
+                    `/booking-confirmation/${result.bookingId}`
+                );
             }, 1200);
+
         } catch (err) {
             console.error(
                 "Create Booking Error:",
