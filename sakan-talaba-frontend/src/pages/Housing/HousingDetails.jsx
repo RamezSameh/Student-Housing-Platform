@@ -12,10 +12,14 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 
 import { getHousingById } from "../../services/housingService";
+import { useAuth } from "../../context/AuthContext";
+import { useFavorites } from "../../context/FavoritesContext";
 
 function HousingDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const favorites = useFavorites();
 
   const [housing, setHousing] = useState(null);
 
@@ -24,9 +28,6 @@ function HousingDetails() {
 
   const [error, setError] =
     useState("");
-
-  const [favorite, setFavorite] =
-    useState(false);
 
   // ==========================================================
   // Load Housing
@@ -195,6 +196,8 @@ function HousingDetails() {
     housing.id ??
     id;
 
+  const favorite = favorites ? favorites.isFavorite(housingId) : false;
+
   const title =
     housing.title ||
     "Student Housing";
@@ -275,12 +278,15 @@ function HousingDetails() {
             {/* Favorite */}
             <button
               type="button"
-              onClick={() =>
-                setFavorite(
-                  (current) => !current
-                )
-              }
-              className={`absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow ${favorite
+              disabled={favorites?.isBusy(housingId)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate("/login", { state: { from: `/housing/${housingId}` } });
+                  return;
+                }
+                favorites?.toggleFavorite(housingId);
+              }}
+              className={`absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow disabled:cursor-wait disabled:opacity-60 ${favorite
                   ? "text-red-500"
                   : "text-slate-600"
                 }`}
@@ -456,12 +462,15 @@ function HousingDetails() {
 
               <button
                 type="button"
-                onClick={() =>
-                  setFavorite(
-                    (current) => !current
-                  )
-                }
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                disabled={favorites?.isBusy(housingId)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate("/login", { state: { from: `/housing/${housingId}` } });
+                    return;
+                  }
+                  favorites?.toggleFavorite(housingId);
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
               >
                 <Heart
                   size={18}
