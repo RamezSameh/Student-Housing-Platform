@@ -20,6 +20,7 @@ import {
 import {
     getBookingById,
 } from "../../services/bookingService";
+import PayNowButton from "../../components/booking/PayNowButton";
 
 function BookingConfirmation() {
     const navigate = useNavigate();
@@ -38,44 +39,45 @@ function BookingConfirmation() {
     // ==========================================================
     // Load Booking
     // ==========================================================
+    const loadBooking = async () => {
+        if (!id) {
+            setError(
+                "Booking ID was not provided."
+            );
+
+            setLoading(false);
+
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const result =
+                await getBookingById(id);
+
+            setBooking(result);
+        } catch (err) {
+            console.error(
+                "Get Booking Error:",
+                err
+            );
+
+            setError(
+                err?.response?.data?.message ||
+                err?.response?.data ||
+                err?.message ||
+                "Failed to load booking."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadBooking = async () => {
-            if (!id) {
-                setError(
-                    "Booking ID was not provided."
-                );
-
-                setLoading(false);
-
-                return;
-            }
-
-            try {
-                setLoading(true);
-                setError("");
-
-                const result =
-                    await getBookingById(id);
-
-                setBooking(result);
-            } catch (err) {
-                console.error(
-                    "Get Booking Error:",
-                    err
-                );
-
-                setError(
-                    err?.response?.data?.message ||
-                    err?.response?.data ||
-                    err?.message ||
-                    "Failed to load booking."
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
-
         loadBooking();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     // ==========================================================
@@ -173,11 +175,15 @@ function BookingConfirmation() {
                         </div>
 
                         <h1 className="text-3xl font-extrabold text-slate-900">
-                            Booking Request Created
+                            {booking.status?.toLowerCase() === "confirmed"
+                                ? "Booking Confirmed"
+                                : "Booking Request Created"}
                         </h1>
 
                         <p className="mt-2 max-w-xl text-slate-600">
-                            Your booking request has been created successfully.
+                            {booking.status?.toLowerCase() === "confirmed"
+                                ? "Your payment was received and your booking is confirmed."
+                                : "Your booking request has been created successfully."}
                         </p>
 
                     </div>
@@ -319,28 +325,35 @@ function BookingConfirmation() {
                     </div>
 
                     {/* Payment Notice */}
-                    {booking.paymentStatus ===
-                        "N/A" && (
+                    {booking.status?.toLowerCase() ===
+                        "pending" && (
                             <div className="mt-5 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
 
-                                <div className="flex gap-3">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-                                    <Clock3
-                                        size={20}
-                                        className="mt-0.5 shrink-0 text-yellow-600"
-                                    />
+                                    <div className="flex gap-3">
+                                        <Clock3
+                                            size={20}
+                                            className="mt-0.5 shrink-0 text-yellow-600"
+                                        />
 
-                                    <div>
+                                        <div>
 
-                                        <p className="font-semibold text-yellow-800">
-                                            Payment is pending
-                                        </p>
+                                            <p className="font-semibold text-yellow-800">
+                                                Payment is pending
+                                            </p>
 
-                                        <p className="mt-1 text-sm text-yellow-700">
-                                            Your booking has been created and is waiting for payment.
-                                        </p>
+                                            <p className="mt-1 text-sm text-yellow-700">
+                                                Your booking has been created and is waiting for payment.
+                                            </p>
 
+                                        </div>
                                     </div>
+
+                                    <PayNowButton
+                                        bookingId={booking.bookingId}
+                                        onPaid={loadBooking}
+                                    />
 
                                 </div>
                             </div>

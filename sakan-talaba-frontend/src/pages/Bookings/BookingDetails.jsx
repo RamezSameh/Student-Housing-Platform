@@ -17,6 +17,7 @@ import {
 import {
     getBookingById,
 } from "../../services/bookingService";
+import PayNowButton from "../../components/booking/PayNowButton";
 
 function BookingDetails() {
     const { id } = useParams();
@@ -31,44 +32,45 @@ function BookingDetails() {
     const [error, setError] =
         useState("");
 
+    const loadBooking = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const data =
+                await getBookingById(id);
+
+            console.log(
+                "Booking Details:",
+                data
+            );
+
+            setBooking(
+                data?.data ??
+                data
+            );
+        } catch (err) {
+            console.error(
+                "Booking Details Error:",
+                err
+            );
+
+            setError(
+                err?.response?.data
+                    ?.message ||
+                err?.message ||
+                "Failed to load booking."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadBooking = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const data =
-                    await getBookingById(id);
-
-                console.log(
-                    "Booking Details:",
-                    data
-                );
-
-                setBooking(
-                    data?.data ??
-                    data
-                );
-            } catch (err) {
-                console.error(
-                    "Booking Details Error:",
-                    err
-                );
-
-                setError(
-                    err?.response?.data
-                        ?.message ||
-                    err?.message ||
-                    "Failed to load booking."
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (id) {
             loadBooking();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     if (loading) {
@@ -249,6 +251,14 @@ function BookingDetails() {
                     {/* Actions */}
 
                     <div className="flex flex-col gap-3 border-t border-slate-100 p-6 sm:flex-row">
+
+                        {booking.status?.toLowerCase() === "pending" && (
+                            <PayNowButton
+                                bookingId={booking.bookingId}
+                                onPaid={loadBooking}
+                                className="flex-1"
+                            />
+                        )}
 
                         <Link
                             to="/bookings"

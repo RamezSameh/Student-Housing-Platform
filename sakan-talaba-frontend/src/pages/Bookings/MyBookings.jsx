@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { getMyBookings } from "../../services/bookingService";
+import PayNowButton from "../../components/booking/PayNowButton";
 
 function MyBookings() {
     const [bookings, setBookings] = useState([]);
@@ -50,6 +51,18 @@ function MyBookings() {
     useEffect(() => {
         loadBookings();
     }, []);
+
+    // A payment just succeeded for one booking — patch it in place instead of
+    // reloading the whole list, so the rest of the page doesn't flicker.
+    const handleBookingPaid = (bookingId) => {
+        setBookings((prev) =>
+            prev.map((b) =>
+                b.bookingId === bookingId
+                    ? { ...b, status: "Confirmed", paymentStatus: "Succeeded" }
+                    : b
+            )
+        );
+    };
 
     // ==========================================================
     // Helpers
@@ -681,13 +694,22 @@ function MyBookings() {
                                                     </p>
                                                 </div>
 
-                                                <Link
-                                                    to={`/bookings/${booking.bookingId}`}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                                                >
-                                                    <Eye size={17} />
-                                                    View Details
-                                                </Link>
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                                    {booking.status?.toLowerCase() === "pending" && (
+                                                        <PayNowButton
+                                                            bookingId={booking.bookingId}
+                                                            onPaid={() => handleBookingPaid(booking.bookingId)}
+                                                        />
+                                                    )}
+
+                                                    <Link
+                                                        to={`/bookings/${booking.bookingId}`}
+                                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                                                    >
+                                                        <Eye size={17} />
+                                                        View Details
+                                                    </Link>
+                                                </div>
 
                                             </div>
 
