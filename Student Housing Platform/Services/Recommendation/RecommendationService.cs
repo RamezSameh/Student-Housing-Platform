@@ -86,10 +86,14 @@ namespace Student_Housing_Platform.Services.Recommendation
                 .ToListAsync(cancellationToken);
 
             // amenities map
-            var amenitiesMap = await _context.HousingAmenities
+            var amenityRows = await _context.HousingAmenities
                 .Where(ha => housingIds.Contains(ha.HousingId))
+                .Select(ha => new { ha.HousingId, ha.AmenityId })
+                .ToListAsync(cancellationToken);
+
+            var amenitiesMap = amenityRows
                 .GroupBy(ha => ha.HousingId)
-                .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.AmenityId).ToList(), cancellationToken);
+                .ToDictionary(g => g.Key, g => g.Select(x => x.AmenityId).ToList());
 
             var results = new List<RecommendedHousingDto>();
             foreach (var item in candidates)
