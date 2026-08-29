@@ -1,4 +1,5 @@
-﻿
+﻿using Student_Housing_Platform.Dtos.AccountDtos;
+
 namespace Student_Housing_Platform.Controllers
 {
     // this controller will receive the registers and login requests
@@ -91,9 +92,68 @@ namespace Student_Housing_Platform.Controllers
             {
                 Email = newUser.Email,
                 FirstName = newUser.FirstName,
-                Token = token
+                LastName = newUser.LastName,
+                Token = token,
+                Roles = roles
             };
             return Ok(loginResponse);
+        }
+
+        //-------Get Current User--------------
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetMe()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized("User ID not found in token.");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Ok(new MeDto
+            {
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Roles = roles
+            });
+        }
+
+        //-------Update Current User--------------
+        [HttpPut("me")]
+        [Authorize]
+        public async Task<IActionResult> UpdateMe([FromBody] UpdateMeDto updateMeDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized("User ID not found in token.");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            user.FirstName = updateMeDto.FirstName.Trim();
+            user.LastName = updateMeDto.LastName.Trim();
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return BadRequest(new { Errors = errors });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Ok(new MeDto
+            {
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Roles = roles
+            });
         }
     }
 }

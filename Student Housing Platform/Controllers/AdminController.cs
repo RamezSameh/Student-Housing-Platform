@@ -150,10 +150,15 @@ namespace Student_Housing_Platform.Controllers
 
         }
         [HttpDelete("housings/{id}")]
-        public async Task<IActionResult> DeleteHousing(int id , ApplicationUser user)
+        public async Task<IActionResult> DeleteHousing(int id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { Message = "User ID not found in token." });
+            }
 
-            var result = await _housingRepository.DeleteAsync(id , user.Id);
+            var result = await _housingRepository.DeleteAsync(id, userId);
             if (!result)
             {
                 return NotFound(new { Message = "Housing not found." });
