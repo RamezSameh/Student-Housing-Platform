@@ -73,13 +73,13 @@ namespace Student_Housing_Platform.Data
 
             // University configuration
             builder.Entity<UniversityHousing>()
-    .HasIndex(x => new { x.UniversityId, x.HousingId })
-    .IsUnique();
-            builder.Entity<UniversityHousing>()
-    .HasOne(x => x.University)
-    .WithMany(u => u.UniversityHousings)
-    .HasForeignKey(x => x.UniversityId)
-    .OnDelete(DeleteBehavior.Cascade);
+                .HasIndex(x => new { x.UniversityId, x.HousingId })
+                .IsUnique();
+                        builder.Entity<UniversityHousing>()
+                .HasOne(x => x.University)
+                .WithMany(u => u.UniversityHousings)
+                .HasForeignKey(x => x.UniversityId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<UniversityHousing>()
                 .HasOne(x => x.Housing)
