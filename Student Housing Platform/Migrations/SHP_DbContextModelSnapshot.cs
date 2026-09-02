@@ -756,6 +756,30 @@ namespace Student_Housing_Platform.Migrations
                     b.ToTable("Universities");
                 });
 
+            modelBuilder.Entity("Student_Housing_Platform.Models.UniversityHousing", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HousingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UniversityId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HousingId");
+
+                    b.HasIndex("UniversityId", "HousingId")
+                        .IsUnique();
+
+                    b.ToTable("UniversityHousings");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -988,6 +1012,25 @@ namespace Student_Housing_Platform.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Student_Housing_Platform.Models.UniversityHousing", b =>
+                {
+                    b.HasOne("Student_Housing_Platform.Models.Housing", "Housing")
+                        .WithMany("UniversityHousings")
+                        .HasForeignKey("HousingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Student_Housing_Platform.Models.University", "University")
+                        .WithMany("UniversityHousings")
+                        .HasForeignKey("UniversityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Housing");
+
+                    b.Navigation("University");
+                });
+
             modelBuilder.Entity("Student_Housing_Platform.Models.Amenity", b =>
                 {
                     b.Navigation("HousingAmenities");
@@ -1023,11 +1066,18 @@ namespace Student_Housing_Platform.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Rooms");
+
+                    b.Navigation("UniversityHousings");
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingType", b =>
                 {
                     b.Navigation("Housings");
+                });
+
+            modelBuilder.Entity("Student_Housing_Platform.Models.University", b =>
+                {
+                    b.Navigation("UniversityHousings");
                 });
 #pragma warning restore 612, 618
         }

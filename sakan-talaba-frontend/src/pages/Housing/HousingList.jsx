@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 
 import HousingCard from "../../components/housing/HousingCard";
 import HousingFilters from "../../components/housing/HousingFilters";
+import Pagination from "../../components/Pagination";
+import ErrorMessage from "../../components/ErrorMessage";
 
 import {
   getHousings,
@@ -306,25 +308,10 @@ function HousingList() {
   // Pagination
   // ==========================================================
 
-  const handlePrevious =
-    () => {
-      setPage((current) =>
-        Math.max(
-          current - 1,
-          1
-        )
-      );
-    };
-
-  const handleNext =
-    () => {
-      setPage((current) =>
-        Math.min(
-          current + 1,
-          totalPages
-        )
-      );
-    };
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // ==========================================================
   // Render
@@ -406,23 +393,11 @@ function HousingList() {
         ================================================== */}
 
         {!loading && error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-
-            <p className="font-medium text-red-600">
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={() =>
-                setAppliedFilters({
-                  ...appliedFilters,
-                })
-              }
-              className="mt-4 rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700"
-            >
-              Try Again
-            </button>
+          <div className="mb-6">
+            <ErrorMessage
+              message={error}
+              onRetry={() => setAppliedFilters({ ...appliedFilters })}
+            />
           </div>
         )}
 
@@ -507,37 +482,11 @@ function HousingList() {
           !error &&
           housings.length > 0 &&
           totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-center gap-4">
-
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={
-                  handlePrevious
-                }
-                className="rounded-lg border border-slate-300 bg-white px-5 py-2 font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                ← Previous
-              </button>
-
-              <span className="rounded-lg bg-slate-900 px-5 py-2 font-semibold text-white">
-                Page {page} of{" "}
-                {totalPages}
-              </span>
-
-              <button
-                type="button"
-                disabled={
-                  page >= totalPages
-                }
-                onClick={
-                  handleNext
-                }
-                className="rounded-lg border border-slate-300 bg-white px-5 py-2 font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Next →
-              </button>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={handlePageChange}
+            />
           )}
       </main>
     </div>
