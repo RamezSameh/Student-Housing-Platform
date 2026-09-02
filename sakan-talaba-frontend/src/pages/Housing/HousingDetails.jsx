@@ -223,12 +223,25 @@ function HousingDetails() {
     housing.primaryImageUrl ||
     housing.image ||
     null;
-  
+
+  const roomsList = Array.isArray(housing.rooms)
+    ? housing.rooms
+    : Array.isArray(housing.housingRooms)
+      ? housing.housingRooms
+      : [];
+
+  const bookableRoom = roomsList.find(
+    (r) => r.isAvailable && (r.availableBeds ?? 0) > 0
+  );
+
   const housingRoomId =
     housing.housingRoomId ??
     housing.roomId ??
-    housing.rooms?.[0]?.housingRoomId ??
-    housing.housingRooms?.[0]?.housingRoomId;
+    bookableRoom?.housingRoomId ??
+    roomsList[0]?.housingRoomId;
+
+  const hasAnyRoom = roomsList.length > 0;
+  const canBook = Boolean(bookableRoom || housingRoomId);
 
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-10">
@@ -428,7 +441,7 @@ function HousingDetails() {
 
               <button
                 type="button"
-                disabled={!housingRoomId}
+                disabled={!canBook}
                 onClick={() => {
                   if (!housingRoomId) {
                     alert(
@@ -510,6 +523,14 @@ function HousingDetails() {
                 Share
               </button>
             </div>
+
+            {!canBook && (
+              <p className="mt-3 text-sm font-medium text-amber-600">
+                {hasAnyRoom
+                  ? "All rooms for this housing are currently full — check back later."
+                  : "No rooms have been added for this housing yet, so it can't be booked right now."}
+              </p>
+            )}
 
             {/* =================================================
                 ID / Debug-free useful information

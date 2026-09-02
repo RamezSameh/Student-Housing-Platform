@@ -750,6 +750,22 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 .AverageAsync(cancellationToken)
                 ?? 0;
 
+            var rooms = await _context.HousingRooms
+                .AsNoTracking()
+                .Where(r => r.HousingId == id)
+                .OrderByDescending(r => r.IsAvailable && r.AvailableBeds > 0)
+                .ThenBy(r => r.Price)
+                .Select(r => new HousingRoomDto
+                {
+                    HousingRoomId = r.RoomId,
+                    RoomType = r.RoomType,
+                    Capacity = r.Capacity,
+                    AvailableBeds = r.AvailableBeds,
+                    Price = r.Price,
+                    IsAvailable = r.IsAvailable
+                })
+                .ToListAsync(cancellationToken);
+
             return new HousingListItemDto
             {
                 Id = housing.HousingId,
@@ -758,7 +774,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 DistanceKm = 0,
                 Rating = rating,
                 IsVerified = housing.IsVerified,
-                City = housing.City
+                City = housing.City,
+                Rooms = rooms
             };
         }
 
