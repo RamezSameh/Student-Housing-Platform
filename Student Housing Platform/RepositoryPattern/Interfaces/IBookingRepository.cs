@@ -13,5 +13,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
         Task<Booking> GetBookingEntityByIdAsync(int bookingId, string userId);
         //Aggregate Root 
         Task ConfirmPaymentAsync(int bookingId, string userId, string transactionId);
+
+        // Management views (Owner Dashboard / Admin Dashboard)
+        Task<IEnumerable<ManagementBookingDto>> GetBookingsForOwnerAsync(string ownerId);
+        Task<IEnumerable<ManagementBookingDto>> GetAllBookingsAsync();
     }
 }

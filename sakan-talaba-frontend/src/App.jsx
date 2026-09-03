@@ -20,6 +20,11 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
+import OwnerLayout from "./pages/Owner/OwnerLayout";
+import OwnerDashboard from "./pages/Owner/OwnerDashboard";
+import OwnerHousings from "./pages/Owner/OwnerHousings";
+import OwnerHousingForm from "./pages/Owner/OwnerHousingForm";
+import OwnerBookings from "./pages/Owner/OwnerBookings";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -55,6 +60,16 @@ function App() {
                   <Route path="/admin" element={<Admin />}>
                     <Route index element={<AdminDashboard />} />
                     <Route path="users" element={<AdminUsers />} />
+                  </Route>
+                </Route>
+
+                <Route element={<ProtectedRoute ownerOnly />}>
+                  <Route path="/owner" element={<OwnerLayout />}>
+                    <Route index element={<OwnerDashboard />} />
+                    <Route path="housings" element={<OwnerHousings />} />
+                    <Route path="housings/new" element={<OwnerHousingForm />} />
+                    <Route path="housings/:id/edit" element={<OwnerHousingForm />} />
+                    <Route path="bookings" element={<OwnerBookings />} />
                   </Route>
                 </Route>
 

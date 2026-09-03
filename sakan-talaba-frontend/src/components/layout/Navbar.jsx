@@ -11,6 +11,7 @@ import {
   Shield,
   ChevronDown,
   Search,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
@@ -26,7 +27,7 @@ const mobileNavLinkClass = ({ isActive }) =>
   }`;
 
 export default function Navbar() {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, isOwner, logout } = useAuth();
   const favorites = useFavorites();
   const navigate = useNavigate();
 
@@ -87,6 +88,12 @@ export default function Navbar() {
             <NavLink to="/admin" className={navLinkClass}>
               <Shield size={18} />
               Admin
+            </NavLink>
+          )}
+          {isOwner && (
+            <NavLink to="/owner" className={navLinkClass}>
+              <Building2 size={18} />
+              Owner Dashboard
             </NavLink>
           )}
         </div>
@@ -177,6 +184,16 @@ export default function Navbar() {
                       Admin Panel
                     </Link>
                   )}
+                  {isOwner && (
+                    <Link
+                      to="/owner"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      <Building2 size={16} />
+                      Owner Dashboard
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -241,6 +258,12 @@ export default function Navbar() {
                   <NavLink to="/admin" onClick={closeMobileMenu} className={mobileNavLinkClass}>
                     <Shield size={19} />
                     Admin Panel
+                  </NavLink>
+                )}
+                {isOwner && (
+                  <NavLink to="/owner" onClick={closeMobileMenu} className={mobileNavLinkClass}>
+                    <Building2 size={19} />
+                    Owner Dashboard
                   </NavLink>
                 )}
               </>

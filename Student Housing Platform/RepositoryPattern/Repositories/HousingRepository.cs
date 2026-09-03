@@ -549,6 +549,113 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         }
 
         // =========================================================
+        // Get Housings By Owner (for the Owner Dashboard)
+        // =========================================================
+
+        public async Task<IEnumerable<OwnerHousingDto>> GetByOwnerAsync(
+            string ownerId,
+            CancellationToken cancellationToken = default)
+        {
+            var housings = await _context.Housings
+                .AsNoTracking()
+                .Where(h => h.OwnerId == ownerId)
+                .OrderByDescending(h => h.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            if (housings.Count == 0)
+                return Enumerable.Empty<OwnerHousingDto>();
+
+            var housingIds = housings.Select(h => h.HousingId).ToList();
+
+            var roomCounts = await _context.HousingRooms
+                .Where(r => housingIds.Contains(r.HousingId))
+                .GroupBy(r => r.HousingId)
+                .Select(g => new { HousingId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.HousingId, g => g.Count, cancellationToken);
+
+            var bookingCounts = await _context.Bookings
+                .Where(b => b.HousingId != null && housingIds.Contains(b.HousingId.Value))
+                .GroupBy(b => b.HousingId!.Value)
+                .Select(g => new { HousingId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.HousingId, g => g.Count, cancellationToken);
+
+            var ratings = await _context.HousingReviews
+                .Where(r => housingIds.Contains(r.HousingId))
+                .GroupBy(r => r.HousingId)
+                .Select(g => new { HousingId = g.Key, Avg = g.Average(r => (double)r.Rating) })
+                .ToDictionaryAsync(g => g.HousingId, g => g.Avg, cancellationToken);
+
+            var primaryImages = await _context.HousingImages
+                .Where(i => housingIds.Contains(i.HousingId))
+                .OrderByDescending(i => i.IsPrimary)
+                .ThenBy(i => i.Id)
+                .GroupBy(i => i.HousingId)
+                .Select(g => new { HousingId = g.Key, Url = g.First().ImageUrl })
+                .ToDictionaryAsync(g => g.HousingId, g => g.Url, cancellationToken);
+
+            return housings.Select(h => new OwnerHousingDto
+            {
+                Id = h.HousingId,
+                Title = h.Title,
+                City = h.City,
+                Price = h.Price,
+                IsAvailable = h.IsAvailable,
+                IsVerified = h.IsVerified,
+                PrimaryImageUrl = primaryImages.TryGetValue(h.HousingId, out var url) ? url : null,
+                RoomCount = roomCounts.TryGetValue(h.HousingId, out var rc) ? rc : 0,
+                BookingCount = bookingCounts.TryGetValue(h.HousingId, out var bc) ? bc : 0,
+                Rating = ratings.TryGetValue(h.HousingId, out var avg) ? avg : 0,
+                CreatedAt = h.CreatedAt
+            }).ToList();
+        }
+
+        // =========================================================
+        // Pending Verification (Admin)
+        // =========================================================
+
+        public async Task<IEnumerable<AdminHousingDto>> GetPendingVerificationAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Housings
+                .AsNoTracking()
+                .Where(h => !h.IsVerified)
+                .Include(h => h.Owner)
+                .OrderBy(h => h.CreatedAt)
+                .Select(h => new AdminHousingDto
+                {
+                    Id = h.HousingId,
+                    Title = h.Title,
+                    City = h.City,
+                    Price = h.Price,
+                    IsAvailable = h.IsAvailable,
+                    IsVerified = h.IsVerified,
+                    OwnerId = h.OwnerId,
+                    OwnerName = h.Owner != null ? (h.Owner.FirstName + " " + h.Owner.LastName) : "",
+                    OwnerEmail = h.Owner != null ? h.Owner.Email : null,
+                    CreatedAt = h.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<bool> SetVerifiedAsync(
+            int id,
+            bool isVerified,
+            CancellationToken cancellationToken = default)
+        {
+            var entity = await _context.Housings
+                .FirstOrDefaultAsync(h => h.HousingId == id, cancellationToken);
+
+            if (entity == null)
+                return false;
+
+            entity.IsVerified = isVerified;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        // =========================================================
         // Create Housing
         // =========================================================
 
@@ -598,7 +705,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         public async Task<bool> UpdateAsync(
             int id,
             UpdateHousingDto dto,
-            string userId)
+            string userId,
+            bool isAdmin = false)
         {
             var entity = await _context.Housings
                 .FindAsync(id);
@@ -606,10 +714,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             if (entity == null)
                 return false;
 
-            // Only owner can update.
-            // Admin authorization is handled in Controller,
-            // but repository still checks ownership.
-            if (entity.OwnerId != userId)
+            // Owners can only update their own listings; admins can update any.
+            if (entity.OwnerId != userId && !isAdmin)
                 return false;
 
             entity.Title = dto.Title.Trim();
@@ -647,7 +753,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
 
         public async Task<bool> DeleteAsync(
             int id,
-            string userId)
+            string userId,
+            bool isAdmin = false)
         {
             var entity = await _context.Housings
                 .FindAsync(id);
@@ -655,7 +762,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             if (entity == null)
                 return false;
 
-            if (entity.OwnerId != userId)
+            if (entity.OwnerId != userId && !isAdmin)
                 return false;
 
             _context.Housings.Remove(entity);
@@ -731,12 +838,14 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         // Get Housing By Id
         // =========================================================
 
-        public async Task<HousingListItemDto?> GetByIdAsync(
+        public async Task<HousingDetailDto?> GetByIdAsync(
             int id,
             CancellationToken cancellationToken = default)
         {
             var housing = await _context.Housings
                 .AsNoTracking()
+                .Include(h => h.HousingType)
+                .Include(h => h.Owner)
                 .FirstOrDefaultAsync(
                     h => h.HousingId == id,
                     cancellationToken);
@@ -744,11 +853,11 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             if (housing == null)
                 return null;
 
-            var rating = await _context.HousingReviews
+            var reviewStats = await _context.HousingReviews
                 .Where(r => r.HousingId == id)
-                .Select(r => (double?)r.Rating)
-                .AverageAsync(cancellationToken)
-                ?? 0;
+                .GroupBy(r => 1)
+                .Select(g => new { Avg = g.Average(r => (double)r.Rating), Count = g.Count() })
+                .FirstOrDefaultAsync(cancellationToken);
 
             var rooms = await _context.HousingRooms
                 .AsNoTracking()
@@ -766,15 +875,54 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 })
                 .ToListAsync(cancellationToken);
 
-            return new HousingListItemDto
+            var images = await _context.HousingImages
+                .AsNoTracking()
+                .Where(i => i.HousingId == id)
+                .OrderByDescending(i => i.IsPrimary)
+                .ThenBy(i => i.Id)
+                .Select(i => new HousingImageDto
+                {
+                    ImageId = i.Id,
+                    ImageUrl = i.ImageUrl,
+                    IsPrimary = i.IsPrimary
+                })
+                .ToListAsync(cancellationToken);
+
+            var amenities = await _context.HousingAmenities
+                .AsNoTracking()
+                .Where(a => a.HousingId == id)
+                .Select(a => a.Amenity!.Name)
+                .ToListAsync(cancellationToken);
+
+            return new HousingDetailDto
             {
                 Id = housing.HousingId,
                 Title = housing.Title,
-                Price = housing.Price,
-                DistanceKm = 0,
-                Rating = rating,
-                IsVerified = housing.IsVerified,
+                Description = housing.Description,
+                Address = housing.Address,
                 City = housing.City,
+                Latitude = housing.Latitude,
+                Longitude = housing.Longitude,
+                Price = housing.Price,
+                HousingTypeId = housing.HousingTypeId,
+                HousingTypeName = housing.HousingType?.HousingTypeName,
+                GenderType = housing.GenderType,
+                IsFurnished = housing.IsFurnished,
+                IsAvailable = housing.IsAvailable,
+                IsVerified = housing.IsVerified,
+                DistanceKm = 0,
+                Rating = reviewStats?.Avg ?? 0,
+                ReviewCount = reviewStats?.Count ?? 0,
+                CreatedAt = housing.CreatedAt,
+                UpdatedAt = housing.UpdatedAt,
+                Owner = housing.Owner == null ? null : new HousingOwnerDto
+                {
+                    OwnerId = housing.OwnerId,
+                    Name = $"{housing.Owner.FirstName} {housing.Owner.LastName}".Trim(),
+                    Email = housing.Owner.Email
+                },
+                Images = images,
+                Amenities = amenities,
                 Rooms = rooms
             };
         }

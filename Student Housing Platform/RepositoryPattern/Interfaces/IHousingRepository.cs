@@ -22,15 +22,18 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
             int page = 1,
             int pageSize = 20,
             CancellationToken cancellationToken = default);
-        Task<HousingListItemDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task<HousingDetailDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<int> CreateAsync(CreateHousingDto dto, string ownerId, CancellationToken cancellationToken = default);
-        Task<bool> UpdateAsync(int id, UpdateHousingDto dto, string userId);
-        Task<bool> DeleteAsync(int id, string userId);
+        Task<bool> UpdateAsync(int id, UpdateHousingDto dto, string userId, bool isAdmin = false);
+        Task<bool> DeleteAsync(int id, string userId, bool isAdmin = false);
         Task<IEnumerable<HousingListItemDto>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
         Task<IEnumerable<Student_Housing_Platform.Dtos.HousingDtos.CompareHousingDto>> GetCompareByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
         Task AddHousingImageAsync(int housingId, string imageUrl, string publicId, bool isPrimary = false);
         Task<bool> DeleteHousingImageAsync(int imageId);
         Task<string?> GetOwnerIdAsync(int housingId);
         Task<HousingImage?> GetImageByIdAsync(int imageId);
+        Task<IEnumerable<OwnerHousingDto>> GetByOwnerAsync(string ownerId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<AdminHousingDto>> GetPendingVerificationAsync(CancellationToken cancellationToken = default);
+        Task<bool> SetVerifiedAsync(int id, bool isVerified, CancellationToken cancellationToken = default);
     }
 }
