@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Info } from "lucide-react";
-import { getDashboardStats } from "../services/adminService";
+import { ShieldCheck, MapPin } from "lucide-react";
+import { getDashboardStats, getPendingHousings, setHousingVerified } from "../services/adminService";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
 import { getApiError } from "../services/api";
@@ -9,24 +9,31 @@ const cards = [
   ["Total users", "totalUsers"],
   ["Students", "totalStudents"],
   ["Owners", "totalOwners"],
-  ["Admins", "totalAdmins"],
   ["Universities", "totalUniversities"],
-  ["Housing types", "totalHousingTypes"],
   ["Total housing", "totalHousing"],
   ["Verified housing", "verifiedHousing"],
   ["Pending housing", "pendingHousing"],
+  ["Total bookings", "totalBookings"],
+  ["Pending bookings", "pendingBookings"],
 ];
 
 export default function AdminDashboard() {
-  const [data, setData] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [pending, setPending] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState(null);
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      setData(await getDashboardStats());
+      const [statsRes, pendingRes] = await Promise.all([
+        getDashboardStats(),
+        getPendingHousings(),
+      ]);
+      setStats(statsRes);
+      setPending(Array.isArray(pendingRes) ? pendingRes : []);
     } catch (e) {
       setError(getApiError(e, "Could not load admin dashboard."));
     } finally {
@@ -38,38 +45,99 @@ export default function AdminDashboard() {
     load();
   }, []);
 
+  const handleVerify = async (id, verify) => {
+    setBusyId(id);
+    try {
+      await setHousingVerified(id, verify);
+      setPending((prev) => prev.filter((h) => h.id !== id));
+      setStats((prev) =>
+        prev
+          ? {
+              ...prev,
+              verifiedHousing: verify ? prev.verifiedHousing + 1 : prev.verifiedHousing,
+              pendingHousing: Math.max(prev.pendingHousing - 1, 0),
+            }
+          : prev
+      );
+    } catch (e) {
+      alert(getApiError(e, "Could not update verification status."));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   if (loading) return <LoadingSpinner text="Loading admin dashboard..." />;
   if (error) return <ErrorMessage message={error} onRetry={load} />;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">Admin Dashboard</h1>
-
+    <div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map(([label, key]) => (
           <div key={key} className="rounded-2xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">{label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-900">{data?.[key] ?? 0}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">{stats?.[key] ?? 0}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 flex gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
-        <Info size={18} className="mt-0.5 shrink-0" />
-        <div className="space-y-1">
-          <p>
-            "Verified" and "pending" housing counts are based on the most recent{" "}
-            {data?.sampledHousing ?? 0} listings returned by the search API, not the full
-            dataset — the backend doesn't currently expose a dedicated verification-count
-            endpoint.
-          </p>
-          <p>
-            A platform-wide bookings summary isn't shown here yet: the backend's
-            <code className="mx-1 rounded bg-blue-100 px-1 py-0.5">/api/Admin/bookings</code>
-            endpoint currently returns only the logged-in admin's own bookings rather than
-            every user's, so a "total bookings" figure here would be misleading.
-          </p>
-        </div>
+      <div className="mt-8">
+        <h2 className="mb-3 text-lg font-bold text-slate-900">
+          Pending verification ({pending.length})
+        </h2>
+
+        {pending.length === 0 ? (
+          <div className="rounded-2xl border bg-white p-8 text-center text-slate-500">
+            No housings waiting for verification.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Housing</th>
+                  <th className="px-4 py-3">Owner</th>
+                  <th className="px-4 py-3">Price</th>
+                  <th className="px-4 py-3">Listed</th>
+                  <th className="px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {pending.map((h) => (
+                  <tr key={h.id}>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-900">{h.title}</div>
+                      <div className="flex items-center gap-1 text-xs text-slate-500">
+                        <MapPin size={12} />
+                        {h.city}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-slate-900">{h.ownerName}</div>
+                      <div className="text-xs text-slate-500">{h.ownerEmail}</div>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {Number(h.price).toLocaleString()} EGP
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">
+                      {new Date(h.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        disabled={busyId === h.id}
+                        onClick={() => handleVerify(h.id, true)}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+                      >
+                        <ShieldCheck size={14} />
+                        Verify
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

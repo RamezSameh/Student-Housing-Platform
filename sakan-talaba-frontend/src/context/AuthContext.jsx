@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
       loading,
       isAuthenticated: !!localStorage.getItem("token"),
       isAdmin: user?.roles?.some((r) => r.toLowerCase() === "admin") || false,
+      isOwner: user?.roles?.some((r) => r.toLowerCase() === "owner") || false,
       login: async (credentials) => {
         const data = await authService.login(credentials);
         setUser({

@@ -7,6 +7,7 @@ using Student_Housing_Platform.Dtos.HousingDtos;
 using Student_Housing_Platform.Dtos.RoomTypeDtos;
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
+using Student_Housing_Platform.Services.Admin;
 using Student_Housing_Platform.Services.CloudinaryService;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -24,9 +25,11 @@ namespace Student_Housing_Platform.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AdminController> _logger;
+        private readonly IAdminService _adminService;
         public AdminController(IHousingTypeRepository housingTypeRepository, IHousingRepository housingRepository,
             ICloudinaryService cloudinaryService, UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager, ILogger<AdminController> logger, IBookingRepository bookingRepository)
+            RoleManager<IdentityRole> roleManager, ILogger<AdminController> logger, IBookingRepository bookingRepository,
+            IAdminService adminService)
         {
             _housingTypeRepository = housingTypeRepository;
             _housingRepository = housingRepository;
@@ -35,7 +38,34 @@ namespace Student_Housing_Platform.Controllers
             _roleManager = roleManager;
             _logger = logger;
             _bookingRepository=bookingRepository;
+            _adminService = adminService;
         }
+
+        // GET: api/Admin/dashboard
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
+        {
+            var stats = await _adminService.GetDashboardAsync(cancellationToken);
+            return Ok(new { success = true, data = stats });
+        }
+
+        // GET: api/Admin/housings/pending
+        [HttpGet("housings/pending")]
+        public async Task<IActionResult> GetPendingHousings(CancellationToken cancellationToken)
+        {
+            var housings = await _housingRepository.GetPendingVerificationAsync(cancellationToken);
+            return Ok(new { success = true, data = housings });
+        }
+
+        // POST: api/Admin/housings/{id}/verify   { "isVerified": true }
+        [HttpPost("housings/{id:int}/verify")]
+        public async Task<IActionResult> SetHousingVerified(int id, [FromBody] SetVerifiedDto dto, CancellationToken cancellationToken)
+        {
+            var updated = await _housingRepository.SetVerifiedAsync(id, dto.IsVerified, cancellationToken);
+            if (!updated) return NotFound(new { success = false, message = "Housing not found." });
+            return Ok(new { success = true });
+        }
+
         [HttpPost("housing-types")] // POST: api/Admin/housing-types
         public async Task<IActionResult> AddHousingType([FromBody] CreateHousingTypeDto createHousingTypeDto)
         {
@@ -242,19 +272,7 @@ namespace Student_Housing_Platform.Controllers
         [HttpGet("bookings")]
         public async Task<IActionResult> GetUserBookings()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return Unauthorized("User ID not found in token.");
-            }
-            var bookings = await _bookingRepository.GetUserBookingsAsync(userId);
-
-            // front end handling empty list is better
-            //if (bookings == null || !bookings.Any())
-            //{
-            //    return NotFound("No bookings found for the user.");
-            //}
-
+            var bookings = await _bookingRepository.GetAllBookingsAsync();
             return Ok(bookings);
         }
 

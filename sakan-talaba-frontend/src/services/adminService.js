@@ -1,40 +1,38 @@
 import api from "./api";
-import { getUniversities } from "./universityService";
-import { getHousings } from "./housingService";
 
-// NOTE: the backend does not expose a dedicated "/Admin/dashboard" endpoint.
-// We build the dashboard stats client-side from the endpoints that DO exist.
+// GET /api/Admin/dashboard — real server-side stats, including an accurate
+// TotalBookings count (the old /Admin/bookings scoping bug is now fixed
+// server-side, and this dedicated endpoint never had that bug to begin with).
 export const getDashboardStats = async () => {
-  const [customers, housingTypes, universitiesRes, housingRes] = await Promise.all([
-    getAdminUsers(),
-    getHousingTypes(),
-    getUniversities(1, 1),
-    getHousings({}, 1, 200),
-  ]);
-
-  const users = Array.isArray(customers) ? customers : [];
-  const hasRole = (u, role) => u.roles?.some((r) => r.toLowerCase() === role.toLowerCase());
-
-  const housingItems = Array.isArray(housingRes?.items) ? housingRes.items : [];
-  const verifiedHousing = housingItems.filter((h) => h.isVerified).length;
-  const sampledHousing = housingItems.length;
-
+  const { data } = await api.get("/Admin/dashboard");
+  const stats = data?.data ?? data;
   return {
-    totalUsers: users.length,
-    totalStudents: users.filter((u) => hasRole(u, "Student")).length,
-    totalOwners: users.filter((u) => hasRole(u, "Owner")).length,
-    totalAdmins: users.filter((u) => hasRole(u, "Admin")).length,
-    totalUniversities: Number(universitiesRes?.totalCount ?? 0),
-    totalHousingTypes: Array.isArray(housingTypes) ? housingTypes.length : 0,
-    totalHousing: Number(housingRes?.totalCount ?? 0),
-    verifiedHousing,
-    pendingHousing: Math.max(sampledHousing - verifiedHousing, 0),
-    sampledHousing,
+    totalUsers: stats?.totalUsers ?? 0,
+    totalStudents: stats?.totalStudents ?? 0,
+    totalOwners: stats?.totalOwners ?? 0,
+    totalUniversities: stats?.totalUniversities ?? 0,
+    totalHousing: stats?.totalHousing ?? 0,
+    verifiedHousing: stats?.verifiedHousing ?? 0,
+    pendingHousing: stats?.pendingHousing ?? 0,
+    totalBookings: stats?.totalBookings ?? 0,
+    pendingBookings: stats?.pendingBookings ?? 0,
   };
 };
 
 export const getAdminUsers = async () => {
   const { data } = await api.get("/Admin/customers");
+  return data;
+};
+
+// GET /api/Admin/housings/pending
+export const getPendingHousings = async () => {
+  const { data } = await api.get("/Admin/housings/pending");
+  return data?.data ?? data;
+};
+
+// POST /api/Admin/housings/{id}/verify
+export const setHousingVerified = async (id, isVerified) => {
+  const { data } = await api.post(`/Admin/housings/${id}/verify`, { isVerified });
   return data;
 };
 

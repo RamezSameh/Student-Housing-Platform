@@ -152,7 +152,7 @@ namespace Student_Housing_Platform.Controllers
 
         // POST: /api/housings
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Create([FromBody] CreateHousingDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -225,16 +225,8 @@ namespace Student_Housing_Platform.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
 
-            // allow admin to update any housing
-            if (User.IsInRole("Admin"))
-            {
-                // fetch entity to get ownerId for repository check bypass
-                var updated = await _repo.UpdateAsync(id, dto, userId);
-                if (!updated) return NotFound(new { success = false, message = "Housing not found or update failed" });
-                return NoContent();
-            }
-
-            var result = await _repo.UpdateAsync(id, dto, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var result = await _repo.UpdateAsync(id, dto, userId, isAdmin);
             if (!result) return Forbid();
             return NoContent();
         }
@@ -247,15 +239,8 @@ namespace Student_Housing_Platform.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
 
-            // Admin can delete any
-            if (User.IsInRole("Admin"))
-            {
-                var deleted = await _repo.DeleteAsync(id, userId);
-                if (!deleted) return NotFound();
-                return NoContent();
-            }
-
-            var success = await _repo.DeleteAsync(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var success = await _repo.DeleteAsync(id, userId, isAdmin);
             if (!success) return Forbid();
             return NoContent();
         }

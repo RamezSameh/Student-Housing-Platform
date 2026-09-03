@@ -7,6 +7,8 @@ import {
   ShieldCheck,
   Heart,
   Share2,
+  User,
+  CheckCircle2,
 } from "lucide-react";
 
 import { useParams, useNavigate } from "react-router-dom";
@@ -222,7 +224,18 @@ function HousingDetails() {
     housing.imageUrl ||
     housing.primaryImageUrl ||
     housing.image ||
+    housing.images?.find((img) => img.isPrimary)?.imageUrl ||
+    housing.images?.[0]?.imageUrl ||
     null;
+
+  const galleryImages = Array.isArray(housing.images) ? housing.images : [];
+  const description = housing.description || "";
+  const address = housing.address || "";
+  const housingTypeName = housing.housingTypeName || "";
+  const genderType = housing.genderType || "";
+  const isFurnished = housing.isFurnished === true;
+  const amenities = Array.isArray(housing.amenities) ? housing.amenities : [];
+  const owner = housing.owner || null;
 
   const roomsList = Array.isArray(housing.rooms)
     ? housing.rooms
@@ -314,6 +327,22 @@ function HousingDetails() {
               />
             </button>
           </div>
+
+          {/* Thumbnail gallery */}
+          {galleryImages.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto border-b border-slate-100 bg-slate-50 p-3">
+              {galleryImages.map((img) => (
+                <img
+                  key={img.imageId ?? img.imageUrl}
+                  src={img.imageUrl}
+                  alt={title}
+                  className={`h-16 w-24 shrink-0 rounded-lg object-cover ${
+                    img.isPrimary ? "ring-2 ring-blue-500" : ""
+                  }`}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Content */}
           <div className="p-8">
@@ -433,6 +462,70 @@ function HousingDetails() {
                 </div>
               </div>
             </div>
+
+            {/* =================================================
+                Description
+            ================================================= */}
+            {description && (
+              <div className="mt-8">
+                <h2 className="mb-2 text-lg font-bold text-slate-900">About this housing</h2>
+                <p className="whitespace-pre-line text-slate-600">{description}</p>
+              </div>
+            )}
+
+            {/* =================================================
+                Details grid: type, gender, furnished, address
+            ================================================= */}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {housingTypeName && (
+                <InfoCard label="Housing Type" value={housingTypeName} />
+              )}
+              {genderType && (
+                <InfoCard label="Gender" value={genderType} />
+              )}
+              <InfoCard label="Furnished" value={isFurnished ? "Yes" : "No"} />
+              {address && (
+                <InfoCard label="Address" value={address} />
+              )}
+            </div>
+
+            {/* =================================================
+                Amenities
+            ================================================= */}
+            {amenities.length > 0 && (
+              <div className="mt-8">
+                <h2 className="mb-3 text-lg font-bold text-slate-900">Amenities</h2>
+                <div className="flex flex-wrap gap-2">
+                  {amenities.map((a) => (
+                    <span
+                      key={a}
+                      className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700"
+                    >
+                      <CheckCircle2 size={14} />
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* =================================================
+                Owner
+            ================================================= */}
+            {owner && (
+              <div className="mt-8 flex items-center gap-4 rounded-xl border border-slate-200 p-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+                  <User size={22} />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Listed by</p>
+                  <p className="font-bold text-slate-900">{owner.name}</p>
+                  {owner.email && (
+                    <p className="text-sm text-slate-500">{owner.email}</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* =================================================
                 Actions

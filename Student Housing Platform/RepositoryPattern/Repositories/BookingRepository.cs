@@ -192,5 +192,68 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
 
 
         }
+
+        // =========================================================
+        // Management views (Owner Dashboard / Admin Dashboard)
+        // =========================================================
+
+        public async Task<IEnumerable<ManagementBookingDto>> GetBookingsForOwnerAsync(string ownerId)
+        {
+            return await _context.Bookings
+                .Where(b => b.Housing != null && b.Housing.OwnerId == ownerId)
+                .Include(b => b.User)
+                .Include(b => b.Housing)
+                .Include(b => b.HousingRoom)
+                .Include(b => b.Payment)
+                .OrderByDescending(b => b.BookingDate)
+                .Select(b => new ManagementBookingDto
+                {
+                    BookingId = b.BookingId,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    BookingDate = b.BookingDate,
+                    TotalAmount = b.TotalAmount,
+                    Status = b.bookingStatus.ToString(),
+                    HousingId = b.HousingId,
+                    HousingTitle = b.Housing != null ? b.Housing.Title : null,
+                    HousingRoomId = b.HousingRoomId,
+                    RoomType = b.HousingRoom != null ? b.HousingRoom.RoomType : null,
+                    StudentId = b.UserId,
+                    StudentName = b.User != null ? (b.User.FirstName + " " + b.User.LastName) : "",
+                    StudentEmail = b.User != null ? b.User.Email : null,
+                    PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
+                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ManagementBookingDto>> GetAllBookingsAsync()
+        {
+            return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Housing)
+                .Include(b => b.HousingRoom)
+                .Include(b => b.Payment)
+                .OrderByDescending(b => b.BookingDate)
+                .Select(b => new ManagementBookingDto
+                {
+                    BookingId = b.BookingId,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    BookingDate = b.BookingDate,
+                    TotalAmount = b.TotalAmount,
+                    Status = b.bookingStatus.ToString(),
+                    HousingId = b.HousingId,
+                    HousingTitle = b.Housing != null ? b.Housing.Title : null,
+                    HousingRoomId = b.HousingRoomId,
+                    RoomType = b.HousingRoom != null ? b.HousingRoom.RoomType : null,
+                    StudentId = b.UserId,
+                    StudentName = b.User != null ? (b.User.FirstName + " " + b.User.LastName) : "",
+                    StudentEmail = b.User != null ? b.User.Email : null,
+                    PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
+                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
+                })
+                .ToListAsync();
+        }
     }
 }
