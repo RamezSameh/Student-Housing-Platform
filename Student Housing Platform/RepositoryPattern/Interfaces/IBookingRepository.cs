@@ -17,5 +17,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
         // Management views (Owner Dashboard / Admin Dashboard)
         Task<IEnumerable<ManagementBookingDto>> GetBookingsForOwnerAsync(string ownerId);
         Task<IEnumerable<ManagementBookingDto>> GetAllBookingsAsync();
+        Task<Booking> ApproveBookingAsync(int bookingId, string ownerId);
+        Task<Booking> RejectBookingAsync(int bookingId, string ownerId);
+        Task<int> ProcessApprovalDeadlinesAsync(DateTime utcNow, CancellationToken cancellationToken);
     }
 }

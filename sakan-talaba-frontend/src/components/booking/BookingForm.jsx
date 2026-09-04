@@ -6,11 +6,19 @@ import {
     AlertCircle,
 } from "lucide-react";
 
-import { createBooking } from "../../services/bookingService";
+import { createHousingBooking } from "../../services/bookingService";
 
 const BookingForm = ({ room }) => {
     const [checkIn, setCheckIn] = useState("");
     const [checkOut, setCheckOut] = useState("");
+    const [nationalId, setNationalId] = useState("");
+    const [universityId, setUniversityId] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [mobile, setMobile] = useState("");
+    const [email, setEmail] = useState("");
+    const [durationMonths, setDurationMonths] = useState(1);
+    const [notes, setNotes] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState("CashOnArrival");
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -35,16 +43,31 @@ const BookingForm = ({ room }) => {
         try {
             setLoading(true);
 
-            await createBooking({
-                roomId: room.housingRoomId ?? room.roomId ?? room.id,
+            await createHousingBooking({
+                housingRoomId: room.housingRoomId ?? room.roomId ?? room.id,
                 checkIn,
                 checkOut,
+                nationalId,
+                universityId,
+                studentName: fullName,
+                mobile,
+                email,
+                durationMonths: Number(durationMonths),
+                notes,
+                paymentMethod,
             });
 
             setSuccess(true);
 
             setCheckIn("");
             setCheckOut("");
+            setNationalId("");
+            setUniversityId("");
+            setFullName("");
+            setMobile("");
+            setEmail("");
+            setDurationMonths(1);
+            setNotes("");
         } catch (err) {
             console.error("Booking error:", err);
 
@@ -105,6 +128,21 @@ const BookingForm = ({ room }) => {
                             required
                         />
                     </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <input required placeholder="الرقم القومي" value={nationalId} onChange={(e) => setNationalId(e.target.value)} className="rounded-lg border px-3 py-3" />
+                        <input required placeholder="الرقم الجامعي" value={universityId} onChange={(e) => setUniversityId(e.target.value)} className="rounded-lg border px-3 py-3" />
+                        <input required placeholder="الاسم بالكامل" value={fullName} onChange={(e) => setFullName(e.target.value)} className="rounded-lg border px-3 py-3" />
+                        <input required type="tel" placeholder="رقم الموبايل" value={mobile} onChange={(e) => setMobile(e.target.value)} className="rounded-lg border px-3 py-3" />
+                        <input required type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-lg border px-3 py-3" />
+                        <input required type="number" min="1" max="24" placeholder="المدة بالشهور" value={durationMonths} onChange={(e) => setDurationMonths(e.target.value)} className="rounded-lg border px-3 py-3" />
+                    </div>
+
+                    <textarea placeholder="ملاحظات (اختياري)" value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-lg border px-3 py-3" rows={3} />
+                    <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full rounded-lg border px-3 py-3">
+                        <option value="CashOnArrival">الدفع عند الوصول</option>
+                        <option value="Stripe">الدفع الإلكتروني</option>
+                    </select>
                 </div>
 
                 {/* Check Out */}

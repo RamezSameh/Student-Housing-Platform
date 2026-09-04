@@ -18,6 +18,16 @@ export const getMyHousingBookings = async () => {
   return data?.data ?? data;
 };
 
+export const approveBooking = async (bookingId) => {
+  const { data } = await api.post(`/Owner/bookings/${bookingId}/approve`);
+  return data;
+};
+
+export const rejectBooking = async (bookingId) => {
+  const { data } = await api.post(`/Owner/bookings/${bookingId}/reject`);
+  return data;
+};
+
 // POST /api/housings
 export const createHousing = async (payload) => {
   const { data } = await api.post("/housings", payload);

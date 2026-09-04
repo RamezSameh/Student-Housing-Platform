@@ -19,31 +19,37 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 throw new KeyNotFoundException("Housing room not found");
             }
 
-            // check availability: ensure no overlapping confirmed/approved bookings for same housing room
+            if (createHousingBookingDto.DurationMonths <= 0)
+                throw new InvalidOperationException("Duration must be at least one month.");
+            var moveInDate = createHousingBookingDto.CheckIn.Date;
+            var moveOutDate = moveInDate.AddMonths(createHousingBookingDto.DurationMonths);
+
+            // check availability: ensure no overlapping active bookings for same housing room
             var overlap = await _context.Bookings.AnyAsync(b => b.HousingRoomId == room.RoomId &&
-                !(createHousingBookingDto.CheckOut <= b.CheckInDate || createHousingBookingDto.CheckIn >= b.CheckOutDate) &&
+                !(moveOutDate <= b.CheckInDate || moveInDate >= b.CheckOutDate) &&
                 b.bookingStatus != BookingStatus.Cancelled);
             if (overlap)
             {
                 throw new InvalidOperationException("Selected room is not available for the requested dates.");
             }
 
-            var numberOfNights = (createHousingBookingDto.CheckOut - createHousingBookingDto.CheckIn).Days;
-            if (numberOfNights <= 0)
-                throw new InvalidOperationException("Check-out date must be after check-in date");
-
-            var totalAmount = room.Price * numberOfNights;
+            var totalAmount = room.Price * createHousingBookingDto.DurationMonths;
 
             var booking = new Booking
             {
                 HousingRoomId = room.RoomId,
                 HousingId = room.HousingId,
                 UserId = userId,
-                CheckInDate = createHousingBookingDto.CheckIn,
-                CheckOutDate = createHousingBookingDto.CheckOut,
+                CheckInDate = moveInDate,
+                CheckOutDate = moveOutDate,
                 BookingDate = DateTime.UtcNow,
                 TotalAmount = totalAmount,
-                bookingStatus = BookingStatus.Pending
+                bookingStatus = BookingStatus.Pending,
+                NationalId = createHousingBookingDto.NationalId, UniversityId = createHousingBookingDto.UniversityId,
+                StudentName = createHousingBookingDto.StudentName, Mobile = createHousingBookingDto.Mobile,
+                Email = createHousingBookingDto.Email, DurationMonths = createHousingBookingDto.DurationMonths,
+                Notes = createHousingBookingDto.Notes, PaymentMethod = createHousingBookingDto.PaymentMethod,
+                ApprovalDeadline = DateTime.UtcNow.AddDays(2)
             };
 
             await _context.Bookings.AddAsync(booking);
@@ -72,7 +78,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 CheckOutDate = createBookingDto.CheckOut,
                 BookingDate = DateTime.UtcNow,
                 TotalAmount = TotalAmount,
-                bookingStatus = BookingStatus.Pending
+                bookingStatus = BookingStatus.Pending,
+                ApprovalDeadline = DateTime.UtcNow.AddDays(2), DurationMonths = Math.Max(1, (int)Math.Ceiling(numberOfNights / 30d)),
+                NationalId = string.Empty, UniversityId = string.Empty, StudentName = string.Empty,
+                Mobile = string.Empty, Email = string.Empty, PaymentMethod = PaymentMethod.Stripe
             };
             await _context.Bookings.AddAsync(newBooking);
             await _context.SaveChangesAsync();
@@ -98,7 +107,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     RoomTypeName = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
                     // Payment props
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
-                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
+                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A",
+                    NationalId = b.NationalId, UniversityId = b.UniversityId, StudentName = b.StudentName,
+                    Mobile = b.Mobile, Email = b.Email, DurationMonths = b.DurationMonths, Notes = b.Notes,
+                    ApprovalDeadline = b.ApprovalDeadline
                 })
                 .ToListAsync();
         }
@@ -124,7 +136,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     RoomTypeName = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
                     // Payment props
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
-                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
+                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A",
+                    NationalId = b.NationalId, UniversityId = b.UniversityId, StudentName = b.StudentName,
+                    Mobile = b.Mobile, Email = b.Email, DurationMonths = b.DurationMonths, Notes = b.Notes,
+                    ApprovalDeadline = b.ApprovalDeadline
                 })
                 .FirstOrDefaultAsync();
             return booking;
@@ -161,8 +176,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     var booking = await GetBookingEntityByIdAsync(bookingId, userId);
                     if (booking == null)
                         throw new KeyNotFoundException("Booking is not Found or user unauthorized");
-                    if (booking.bookingStatus != BookingStatus.Pending)
-                        throw new InvalidOperationException("Booking is already processed!");
+                    if (booking.bookingStatus != BookingStatus.OwnerApproved)
+                        throw new InvalidOperationException("Booking must be approved by the owner before payment.");
                     // لو عدي من ال 2 check 
                     // يبقي كده الغرفة موجودة و الدفع لسا قيد الانتظار
                     var newPayment = new Payment
@@ -171,7 +186,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                         TransactionId = transactionId,
                         Amount = booking.TotalAmount,
                         PaymentDate = DateTime.Now,
-                        Method = PaymentMethod.Stripe, // default
+                        Method = booking.PaymentMethod,
                         Status = PaymentStatus.Succeeded
                     };
                     await _context.Payments.AddAsync(newPayment);
@@ -222,7 +237,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     StudentName = b.User != null ? (b.User.FirstName + " " + b.User.LastName) : "",
                     StudentEmail = b.User != null ? b.User.Email : null,
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
-                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
+                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A",
+                    NationalId = b.NationalId, UniversityId = b.UniversityId, Mobile = b.Mobile, Notes = b.Notes,
+                    ApprovalDeadline = b.ApprovalDeadline
                 })
                 .ToListAsync();
         }
@@ -251,9 +268,56 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     StudentName = b.User != null ? (b.User.FirstName + " " + b.User.LastName) : "",
                     StudentEmail = b.User != null ? b.User.Email : null,
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
-                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A"
+                    PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A",
+                    NationalId = b.NationalId, UniversityId = b.UniversityId, Mobile = b.Mobile, Notes = b.Notes,
+                    ApprovalDeadline = b.ApprovalDeadline
                 })
                 .ToListAsync();
+        }
+
+        public async Task<Booking> ApproveBookingAsync(int bookingId, string ownerId)
+        {
+            var booking = await _context.Bookings.Include(b => b.Housing)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.Housing != null && b.Housing.OwnerId == ownerId);
+            if (booking == null) throw new KeyNotFoundException("Booking not found.");
+            if (booking.bookingStatus != BookingStatus.Pending) throw new InvalidOperationException("Only pending bookings can be approved.");
+            booking.bookingStatus = BookingStatus.OwnerApproved;
+            await _context.SaveChangesAsync();
+            await _context.Notifications.AddAsync(new Notification { UserId = booking.UserId, Title = "Booking approved", Message = "Your booking was approved. Please complete payment before the deadline." });
+            await _context.SaveChangesAsync();
+            return booking;
+        }
+
+        public async Task<Booking> RejectBookingAsync(int bookingId, string ownerId)
+        {
+            var booking = await _context.Bookings.Include(b => b.Housing)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.Housing != null && b.Housing.OwnerId == ownerId);
+            if (booking == null) throw new KeyNotFoundException("Booking not found.");
+            if (booking.bookingStatus != BookingStatus.Pending) throw new InvalidOperationException("Only pending bookings can be rejected.");
+            booking.bookingStatus = BookingStatus.Rejected;
+            await _context.SaveChangesAsync();
+            await _context.Notifications.AddAsync(new Notification { UserId = booking.UserId, Title = "Booking rejected", Message = "The owner rejected your booking request." });
+            await _context.SaveChangesAsync();
+            return booking;
+        }
+
+        public async Task<int> ProcessApprovalDeadlinesAsync(DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var due = await _context.Bookings.Where(b => b.bookingStatus == BookingStatus.Pending && b.ApprovalDeadline <= utcNow).ToListAsync(cancellationToken);
+            foreach (var booking in due)
+            {
+                booking.bookingStatus = BookingStatus.Rejected;
+                await _context.Notifications.AddAsync(new Notification { UserId = booking.UserId, Title = "Booking automatically rejected", Message = "The owner did not approve your booking within two days." }, cancellationToken);
+            }
+            var reminderAt = utcNow.AddHours(24);
+            var reminders = await _context.Bookings.Where(b => b.bookingStatus == BookingStatus.Pending && !b.FinalReminderSent && b.ApprovalDeadline <= reminderAt && b.ApprovalDeadline > utcNow).ToListAsync(cancellationToken);
+            foreach (var booking in reminders)
+            {
+                booking.FinalReminderSent = true;
+                await _context.Notifications.AddAsync(new Notification { UserId = booking.UserId, Title = "Final booking reminder", Message = "Your booking is awaiting owner approval and will expire within 24 hours." }, cancellationToken);
+            }
+            await _context.SaveChangesAsync(cancellationToken);
+            return due.Count;
         }
     }
 }

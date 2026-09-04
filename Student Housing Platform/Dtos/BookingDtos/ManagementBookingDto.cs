@@ -27,5 +27,10 @@ namespace Student_Housing_Platform.Dtos.BookingDtos
 
         public string PaymentMethod { get; set; } = "N/A";
         public string PaymentStatus { get; set; } = "N/A";
+        public string NationalId { get; set; } = string.Empty;
+        public string UniversityId { get; set; } = string.Empty;
+        public string Mobile { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public DateTime ApprovalDeadline { get; set; }
     }
 }

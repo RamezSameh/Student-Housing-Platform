@@ -20,5 +20,13 @@
         // from payment navigation property
         public string PaymentMethod { get; set; } // (Stripe, CashOnArrival)
         public string PaymentStatus { get; set; } // (Succeeded, Pending, Failed)
+        public string NationalId { get; set; } = string.Empty;
+        public string UniversityId { get; set; } = string.Empty;
+        public string StudentName { get; set; } = string.Empty;
+        public string Mobile { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int DurationMonths { get; set; }
+        public string? Notes { get; set; }
+        public DateTime ApprovalDeadline { get; set; }
     }
 }

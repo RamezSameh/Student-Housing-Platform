@@ -39,6 +39,13 @@ namespace Student_Housing_Platform.Services.Admin
             var pendingHousing = await _context.Housings.CountAsync(h => !h.IsVerified && h.IsAvailable, cancellationToken);
             var totalBookings = await _context.Bookings.CountAsync(cancellationToken);
             var pendingBookings = await _context.Bookings.CountAsync(b => b.bookingStatus == BookingStatus.Pending, cancellationToken);
+            var confirmedBookings = await _context.Bookings.CountAsync(b => b.bookingStatus == BookingStatus.Confirmed, cancellationToken);
+            var cancelledBookings = await _context.Bookings.CountAsync(b => b.bookingStatus == BookingStatus.Cancelled, cancellationToken);
+            var totalRevenue = await _context.Payments
+                .Where(p => p.Status == PaymentStatus.Succeeded)
+                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+            var unreadContactMessages = await _context.ContactMessages
+                .CountAsync(m => !m.IsRead, cancellationToken);
 
             return new AdminDashboardDto
             {
@@ -50,7 +57,11 @@ namespace Student_Housing_Platform.Services.Admin
                 VerifiedHousing = verifiedHousing,
                 PendingHousing = pendingHousing,
                 TotalBookings = totalBookings,
-                PendingBookings = pendingBookings
+                PendingBookings = pendingBookings,
+                ConfirmedBookings = confirmedBookings,
+                CancelledBookings = cancelledBookings,
+                TotalRevenue = totalRevenue,
+                UnreadContactMessages = unreadContactMessages
             };
         }
     }
