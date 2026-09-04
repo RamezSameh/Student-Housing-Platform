@@ -1,6 +1,0 @@
-@Student_Housing_Platform_HostAddress = http://localhost:5107
-
-GET {{Student_Housing_Platform_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
