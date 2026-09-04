@@ -9,6 +9,7 @@ using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
 using Student_Housing_Platform.Services.Admin;
 using Student_Housing_Platform.Services.CloudinaryService;
+using Student_Housing_Platform.Data;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Student_Housing_Platform.Controllers
@@ -26,10 +27,11 @@ namespace Student_Housing_Platform.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminService _adminService;
+        private readonly SHP_DbContext _context;
         public AdminController(IHousingTypeRepository housingTypeRepository, IHousingRepository housingRepository,
             ICloudinaryService cloudinaryService, UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager, ILogger<AdminController> logger, IBookingRepository bookingRepository,
-            IAdminService adminService)
+            IAdminService adminService, SHP_DbContext context)
         {
             _housingTypeRepository = housingTypeRepository;
             _housingRepository = housingRepository;
@@ -39,6 +41,7 @@ namespace Student_Housing_Platform.Controllers
             _logger = logger;
             _bookingRepository=bookingRepository;
             _adminService = adminService;
+            _context = context;
         }
 
         // GET: api/Admin/dashboard
@@ -298,7 +301,56 @@ namespace Student_Housing_Platform.Controllers
                     Roles = roles
                 });
             }
+
             return Ok(results);
+        }
+
+        [HttpDelete("users/{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (id == currentUserId) return BadRequest("You cannot delete your own account.");
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound("User not found.");
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+                return BadRequest("Admin accounts cannot be deleted here.");
+            var ownedHousings = await _context.Housings.Where(h => h.OwnerId == id).ToListAsync();
+            if (ownedHousings.Count > 0)
+            {
+                _context.Housings.RemoveRange(ownedHousings);
+                await _context.SaveChangesAsync();
+            }
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+                return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+            return NoContent();
+        }
+
+        [HttpPost("owners")]
+        public async Task<IActionResult> CreateOwner([FromBody] CreateOwnerDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (await _userManager.FindByEmailAsync(dto.Email) != null)
+                return BadRequest("Email is already registered.");
+
+            var owner = new ApplicationUser
+            {
+                Email = dto.Email,
+                UserName = dto.Email,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                EmailConfirmed = true
+            };
+            var result = await _userManager.CreateAsync(owner, dto.Password);
+            if (!result.Succeeded)
+                return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+
+            var roleResult = await _userManager.AddToRoleAsync(owner, "Owner");
+            if (!roleResult.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { Errors = roleResult.Errors.Select(e => e.Description) });
+
+            return Ok(new { owner.Id, owner.Email, owner.FirstName, owner.LastName, Role = "Owner" });
         }
 
         [HttpPost("users/promote")]

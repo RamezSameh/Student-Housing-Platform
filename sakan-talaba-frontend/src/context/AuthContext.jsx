@@ -28,6 +28,10 @@ export function AuthProvider({ children }) {
           firstName: me.firstName,
           lastName: me.lastName,
           roles: me.roles || [],
+          nationalId: me.nationalId || "",
+          universityId: me.universityId || "",
+          university: me.university || "",
+          mobile: me.mobile || "",
         };
         localStorage.setItem("user", JSON.stringify(normalized));
         setUser(normalized);
@@ -63,6 +67,10 @@ export function AuthProvider({ children }) {
           firstName: data.firstName,
           lastName: data.lastName,
           roles: data.roles || [],
+          nationalId: data.nationalId || "",
+          universityId: data.universityId || "",
+          university: data.university || "",
+          mobile: data.mobile || "",
         });
         return data;
       },
@@ -73,7 +81,11 @@ export function AuthProvider({ children }) {
             email: data.email,
             firstName: data.firstName,
             lastName: data.lastName,
-            roles: data.roles || ["Customer"],
+            roles: data.roles || ["Student"],
+            nationalId: data.nationalId || "",
+            universityId: data.universityId || "",
+            university: data.university || "",
+            mobile: data.mobile || "",
           });
         }
         return data;
@@ -89,6 +101,10 @@ export function AuthProvider({ children }) {
           firstName: me.firstName,
           lastName: me.lastName,
           roles: me.roles || [],
+          nationalId: me.nationalId || "",
+          universityId: me.universityId || "",
+          university: me.university || "",
+          mobile: me.mobile || "",
         };
         localStorage.setItem("user", JSON.stringify(normalized));
         setUser(normalized);

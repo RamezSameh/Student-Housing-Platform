@@ -86,35 +86,34 @@ namespace Student_Housing_Platform.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.CreateTable(
-                name: "ContactMessages",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    Subject = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    Message = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ContactMessages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ContactMessages_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ContactMessages_UserId",
-                table: "ContactMessages",
-                column: "UserId");
+            migrationBuilder.Sql("""
+                IF OBJECT_ID(N'[ContactMessages]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [ContactMessages] (
+                        [Id] int NOT NULL IDENTITY,
+                        [Name] nvarchar(150) NOT NULL,
+                        [Email] nvarchar(200) NOT NULL,
+                        [Phone] nvarchar(30) NULL,
+                        [Subject] nvarchar(200) NULL,
+                        [Message] nvarchar(2000) NOT NULL,
+                        [UserId] nvarchar(450) NULL,
+                        [IsRead] bit NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_ContactMessages] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_ContactMessages_AspNetUsers_UserId]
+                            FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id])
+                    );
+                END
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE name = N'IX_ContactMessages_UserId'
+                      AND object_id = OBJECT_ID(N'[ContactMessages]')
+                )
+                BEGIN
+                    CREATE INDEX [IX_ContactMessages_UserId]
+                        ON [ContactMessages] ([UserId]);
+                END
+                """);
         }
 
         /// <inheritdoc />

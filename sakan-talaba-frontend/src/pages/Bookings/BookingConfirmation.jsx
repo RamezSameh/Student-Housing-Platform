@@ -350,10 +350,12 @@ function BookingConfirmation() {
                                         </div>
                                     </div>
 
-                                    <PayNowButton
-                                        bookingId={booking.bookingId}
-                                        onPaid={loadBooking}
-                                    />
+                                    {booking.status?.toLowerCase() === "ownerapproved" && (
+                                        <PayNowButton
+                                            bookingId={booking.bookingId}
+                                            onPaid={loadBooking}
+                                        />
+                                    )}
 
                                 </div>
                             </div>

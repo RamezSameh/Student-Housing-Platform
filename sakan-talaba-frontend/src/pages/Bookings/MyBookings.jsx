@@ -12,13 +12,14 @@ import {
     Search,
 } from "lucide-react";
 
-import { getMyBookings } from "../../services/bookingService";
+import { getMyBookings, cancelBooking } from "../../services/bookingService";
 import PayNowButton from "../../components/booking/PayNowButton";
 
 function MyBookings() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [cancellingId, setCancellingId] = useState(null);
 
     const [activeFilter, setActiveFilter] = useState("All");
     const [search, setSearch] = useState("");
@@ -51,6 +52,19 @@ function MyBookings() {
     useEffect(() => {
         loadBookings();
     }, []);
+
+    const handleCancel = async (bookingId) => {
+        if (!window.confirm("Cancel this booking request?")) return;
+        try {
+            setCancellingId(bookingId);
+            await cancelBooking(bookingId);
+            await loadBookings();
+        } catch (err) {
+            setError(err?.response?.data?.message || err?.response?.data || err?.message || "Failed to cancel booking.");
+        } finally {
+            setCancellingId(null);
+        }
+    };
 
     // A payment just succeeded for one booking — patch it in place instead of
     // reloading the whole list, so the rest of the page doesn't flicker.
@@ -695,11 +709,21 @@ function MyBookings() {
                                                 </div>
 
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                                    {booking.status?.toLowerCase() === "pending" && (
+                                                    {booking.status?.toLowerCase() === "ownerapproved" && (
                                                         <PayNowButton
                                                             bookingId={booking.bookingId}
                                                             onPaid={() => handleBookingPaid(booking.bookingId)}
                                                         />
+                                                    )}
+                                                    {["pending", "ownerapproved"].includes(booking.status?.toLowerCase()) && (
+                                                        <button
+                                                            type="button"
+                                                            disabled={cancellingId === booking.bookingId}
+                                                            onClick={() => handleCancel(booking.bookingId)}
+                                                            className="rounded-xl border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                                        >
+                                                            {cancellingId === booking.bookingId ? "Cancelling..." : "Cancel"}
+                                                        </button>
                                                     )}
 
                                                     <Link

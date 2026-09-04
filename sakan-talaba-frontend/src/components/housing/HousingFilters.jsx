@@ -220,33 +220,22 @@ function HousingFilters({
           </select>
         </div>
 
-        {/* Furnished */}
+        {/* Gender */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
-            Furnished
+            Gender
           </label>
-
           <select
-            value={filters.isFurnished ?? ""}
+            value={filters.genderType ?? ""}
             onChange={(e) =>
-              updateFilter(
-                "isFurnished",
-                e.target.value
-              )
+              updateFilter("genderType", e.target.value)
             }
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">
-              Any
-            </option>
-
-            <option value="true">
-              Furnished
-            </option>
-
-            <option value="false">
-              Not Furnished
-            </option>
+            <option value="">Any gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Mixed">Mixed</option>
           </select>
         </div>
 

@@ -150,6 +150,21 @@ namespace Student_Housing_Platform.Controllers
             }
         }
 
+        [HttpPost("{id:int}/cancel")]
+        public async Task<IActionResult> CancelBooking(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized("User ID not found in token.");
+
+            try
+            {
+                await _bookingRepository.CancelBookingAsync(id, userId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
+        }
+
 
     }
 }

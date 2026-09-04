@@ -19,6 +19,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
         Task<IEnumerable<ManagementBookingDto>> GetAllBookingsAsync();
         Task<Booking> ApproveBookingAsync(int bookingId, string ownerId);
         Task<Booking> RejectBookingAsync(int bookingId, string ownerId);
+        Task CancelBookingAsync(int bookingId, string userId);
         Task<int> ProcessApprovalDeadlinesAsync(DateTime utcNow, CancellationToken cancellationToken);
     }
 }

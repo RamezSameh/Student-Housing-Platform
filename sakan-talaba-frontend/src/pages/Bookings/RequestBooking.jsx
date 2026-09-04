@@ -17,9 +17,12 @@ import {
 import {
     createHousingBooking,
 } from "../../services/bookingService";
+import { useAuth } from "../../context/AuthContext";
+import { getApiError } from "../../services/api";
 
 function RequestBooking() {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const [searchParams] =
         useSearchParams();
@@ -37,8 +40,6 @@ function RequestBooking() {
     const [checkIn, setCheckIn] =
         useState("");
 
-    const [checkOut, setCheckOut] =
-        useState("");
 
     const [loading, setLoading] =
         useState(false);
@@ -48,6 +49,16 @@ function RequestBooking() {
 
     const [success, setSuccess] =
         useState(false);
+    const [form, setForm] = useState({
+        nationalId: user?.nationalId || "",
+        universityId: user?.universityId || "",
+        studentName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+        mobile: user?.mobile || "",
+        email: user?.email || "",
+        durationMonths: 1,
+        notes: "",
+        paymentMethod: "CashOnArrival",
+    });
 
     // ==========================================================
     // Validate Room
@@ -75,36 +86,24 @@ function RequestBooking() {
             return;
         }
 
-        if (!checkIn || !checkOut) {
-            setError(
-                "Please select both dates."
-            );
+        if (!checkIn) {
+            setError("Please select a move-in date.");
             return;
         }
 
         const startDate =
             new Date(checkIn);
 
-        const endDate =
-            new Date(checkOut);
+        const duration = Number(form.durationMonths);
 
         if (
             Number.isNaN(
                 startDate.getTime()
             ) ||
-            Number.isNaN(
-                endDate.getTime()
-            )
+            !Number.isFinite(duration) || duration < 1
         ) {
             setError(
                 "Please enter valid dates."
-            );
-            return;
-        }
-
-        if (startDate >= endDate) {
-            setError(
-                "Check-out date must be after check-in date."
             );
             return;
         }
@@ -120,8 +119,9 @@ function RequestBooking() {
                     checkIn:
                         `${checkIn}T00:00:00`,
 
-                    checkOut:
-                        `${checkOut}T00:00:00`,
+                    checkOut: `${new Date(startDate.setMonth(startDate.getMonth() + duration)).toISOString().slice(0, 10)}T00:00:00`,
+                    ...form,
+                    durationMonths: Number(form.durationMonths),
                 });
 
             console.log(
@@ -143,12 +143,7 @@ function RequestBooking() {
                 err
             );
 
-            setError(
-                err?.response?.data?.message ||
-                err?.response?.data ||
-                err?.message ||
-                "Failed to create booking."
-            );
+            setError(getApiError(err, "Failed to create booking."));
         } finally {
             setLoading(false);
         }
@@ -260,39 +255,42 @@ function RequestBooking() {
                                 </div>
                             </div>
 
-                            {/* Check Out */}
-                            <div>
+                        </div>
 
-                                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                                    Check-out Date
-                                </label>
-
-                                <div className="relative">
-
-                                    <CalendarDays
-                                        size={18}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600"
-                                    />
-
+                        <div className="mt-6 grid gap-4 md:grid-cols-2">
+                            {[
+                                ["nationalId", "National ID"],
+                                ["universityId", "University ID"],
+                                ["studentName", "Full name"],
+                                ["mobile", "Mobile"],
+                                ["email", "Email"],
+                            ].map(([name, label]) => (
+                                <label key={name} className="block">
+                                    <span className="mb-2 block text-sm font-semibold text-slate-700">{label}</span>
                                     <input
-                                        type="date"
-                                        value={checkOut}
-                                        onChange={(event) =>
-                                            setCheckOut(
-                                                event.target.value
-                                            )
-                                        }
-                                        min={
-                                            checkIn ||
-                                            new Date()
-                                                .toISOString()
-                                                .split("T")[0]
-                                        }
-                                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        required
+                                        type={name === "email" ? "email" : "text"}
+                                        value={form[name]}
+                                        onChange={(event) => setForm({ ...form, [name]: event.target.value })}
+                                        className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
-                                </div>
-                            </div>
-
+                                </label>
+                            ))}
+                            <label className="block">
+                                <span className="mb-2 block text-sm font-semibold text-slate-700">Duration (months)</span>
+                                <input required min="1" max="120" type="number" value={form.durationMonths} onChange={(event) => setForm({ ...form, durationMonths: event.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3" />
+                            </label>
+                            <label className="block">
+                                <span className="mb-2 block text-sm font-semibold text-slate-700">Payment method</span>
+                                <select value={form.paymentMethod} onChange={(event) => setForm({ ...form, paymentMethod: event.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3">
+                                    <option value="CashOnArrival">Cash on arrival</option>
+                                    <option value="Stripe">Online payment</option>
+                                </select>
+                            </label>
+                            <label className="block md:col-span-2">
+                                <span className="mb-2 block text-sm font-semibold text-slate-700">Notes</span>
+                                <textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} rows="3" className="w-full rounded-xl border border-slate-200 px-4 py-3" />
+                            </label>
                         </div>
 
                         {/* Error */}

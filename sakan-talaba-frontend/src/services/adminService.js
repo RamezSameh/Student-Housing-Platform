@@ -60,6 +60,15 @@ export const demoteFromAdmin = async (email) => {
   return data;
 };
 
+export const createOwner = async (payload) => {
+  const { data } = await api.post("/Admin/owners", payload);
+  return data;
+};
+
+export const deleteUser = async (id) => {
+  await api.delete(`/Admin/users/${id}`);
+};
+
 export const getHousingTypes = async () => {
   const { data } = await api.get("/Admin/housing-types");
   return data;

@@ -252,7 +252,7 @@ function BookingDetails() {
 
                     <div className="flex flex-col gap-3 border-t border-slate-100 p-6 sm:flex-row">
 
-                        {booking.status?.toLowerCase() === "pending" && (
+                        {booking.status?.toLowerCase() === "ownerapproved" && (
                             <PayNowButton
                                 bookingId={booking.bookingId}
                                 onPaid={loadBooking}

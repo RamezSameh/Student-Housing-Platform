@@ -23,7 +23,6 @@ const INITIAL_FILTERS = {
   housingType: "",
   roomType: "",
   genderType: "",
-  isFurnished: "",
   amenities: "",
   minimumRating: "",
   sortBy: "",

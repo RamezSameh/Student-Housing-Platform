@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { sendContactMessage } from "../services/contactService";
 import { getApiError } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 const emptyForm = { name: "", email: "", phone: "", subject: "", message: "" };
 
 export default function ContactUs() {
-  const [form, setForm] = useState(emptyForm);
+  const { user } = useAuth();
+  const [form, setForm] = useState({ ...emptyForm, name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(), email: user?.email || "", phone: user?.mobile || "" });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");

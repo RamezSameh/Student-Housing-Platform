@@ -16,7 +16,6 @@ const emptyForm = {
   price: "",
   housingTypeId: "",
   genderType: "Mixed",
-  isFurnished: false,
   isAvailable: true,
 };
 
@@ -57,7 +56,6 @@ export default function OwnerHousingForm() {
               price: String(housing.price ?? ""),
               housingTypeId: String(housing.housingTypeId ?? ""),
               genderType: housing.genderType || "Mixed",
-              isFurnished: Boolean(housing.isFurnished),
               isAvailable: housing.isAvailable !== false,
             });
             setExistingIsVerified(Boolean(housing.isVerified));
@@ -117,7 +115,6 @@ export default function OwnerHousingForm() {
       price: Number(form.price),
       housingTypeId: Number(form.housingTypeId),
       genderType: form.genderType,
-      isFurnished: form.isFurnished,
       isAvailable: form.isAvailable,
     };
 
@@ -279,8 +276,6 @@ export default function OwnerHousingForm() {
 
         <div className="flex flex-wrap gap-6">
           <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={form.isFurnished} onChange={handleChange("isFurnished")} />
-            Furnished
           </label>
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={form.isAvailable} onChange={handleChange("isAvailable")} />

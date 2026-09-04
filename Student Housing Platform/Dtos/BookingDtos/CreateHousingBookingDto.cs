@@ -11,7 +11,7 @@ namespace Student_Housing_Platform.Dtos.BookingDtos
         [Required]
         public DateTime CheckOut { get; set; }
         [Required] public string NationalId { get; set; } = string.Empty;
-        [Required] public string UniversityId { get; set; } = string.Empty;
+        public string? UniversityId { get; set; }
         [Required] public string StudentName { get; set; } = string.Empty;
         [Required] public string Mobile { get; set; } = string.Empty;
         [Required, EmailAddress] public string Email { get; set; } = string.Empty;
