@@ -50,6 +50,10 @@ namespace Student_Housing_Platform.Controllers
                 LastName = user.LastName,
                 Token = token,
                 Roles = roles
+                ,NationalId = user.NationalId
+                ,UniversityId = user.UniversityId
+                ,University = user.University
+                ,Mobile = user.Mobile
             };
 
             return Ok(loginResponse);
@@ -71,6 +75,10 @@ namespace Student_Housing_Platform.Controllers
                 UserName = registerDto.Email,
                 FirstName = registerDto.FirstName,
                 LastName = registerDto.LastName
+                ,NationalId = registerDto.NationalId
+                ,UniversityId = registerDto.UniversityId
+                ,University = registerDto.University
+                ,Mobile = registerDto.Mobile
             };
 
             var result = await _userManager.CreateAsync(newUser, registerDto.Password);
@@ -79,8 +87,7 @@ namespace Student_Housing_Platform.Controllers
                 var errors = result.Errors.Select(e => e.Description);
                 return BadRequest(new { Errors = errors });
             }
-            var roleExists = await _userManager.IsInRoleAsync(newUser, "Customer"); //expected to be false
-            var addRoleResult = await _userManager.AddToRoleAsync(newUser, "Customer");
+            var addRoleResult = await _userManager.AddToRoleAsync(newUser, "Student");
             if(!addRoleResult.Succeeded)
             {
                 var errors = addRoleResult.Errors.Select(e => e.Description);
@@ -95,6 +102,10 @@ namespace Student_Housing_Platform.Controllers
                 LastName = newUser.LastName,
                 Token = token,
                 Roles = roles
+                ,NationalId = newUser.NationalId
+                ,UniversityId = newUser.UniversityId
+                ,University = newUser.University
+                ,Mobile = newUser.Mobile
             };
             return Ok(loginResponse);
         }
@@ -118,6 +129,10 @@ namespace Student_Housing_Platform.Controllers
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Roles = roles
+                ,NationalId = user.NationalId
+                ,UniversityId = user.UniversityId
+                ,University = user.University
+                ,Mobile = user.Mobile
             });
         }
 
@@ -137,6 +152,10 @@ namespace Student_Housing_Platform.Controllers
 
             user.FirstName = updateMeDto.FirstName.Trim();
             user.LastName = updateMeDto.LastName.Trim();
+            if (updateMeDto.NationalId != null) user.NationalId = updateMeDto.NationalId.Trim();
+            user.UniversityId = updateMeDto.UniversityId?.Trim();
+            if (updateMeDto.University != null) user.University = updateMeDto.University.Trim();
+            if (updateMeDto.Mobile != null) user.Mobile = updateMeDto.Mobile.Trim();
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
@@ -152,8 +171,26 @@ namespace Student_Housing_Platform.Controllers
                 Email = user.Email ?? string.Empty,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Roles = roles
+                Roles = roles,
+                NationalId = user.NationalId,
+                UniversityId = user.UniversityId,
+                University = user.University,
+                Mobile = user.Mobile
             });
+        }
+
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = userId == null ? null : await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+            if (!result.Succeeded)
+                return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+            return NoContent();
         }
     }
 }

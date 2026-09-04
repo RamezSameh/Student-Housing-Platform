@@ -679,7 +679,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 Price = dto.Price,
                 HousingTypeId = dto.HousingTypeId,
                 GenderType = dto.GenderType,
-                IsFurnished = dto.IsFurnished,
+                IsFurnished = true,
                 IsAvailable = dto.IsAvailable,
                 OwnerId = ownerId,
                 CreatedAt = DateTime.UtcNow,
@@ -731,7 +731,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             entity.Price = dto.Price;
             entity.HousingTypeId = dto.HousingTypeId;
             entity.GenderType = dto.GenderType;
-            entity.IsFurnished = dto.IsFurnished;
+            entity.IsFurnished = true;
             entity.IsAvailable = dto.IsAvailable;
             entity.IsVerified = dto.IsVerified;
             entity.UpdatedAt = DateTime.UtcNow;

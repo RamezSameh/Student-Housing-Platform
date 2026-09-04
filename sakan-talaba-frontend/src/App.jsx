@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
@@ -22,6 +23,7 @@ import ContactUs from "./pages/ContactUs";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
+import AdminInbox from "./pages/AdminInbox";
 import OwnerLayout from "./pages/Owner/OwnerLayout";
 import OwnerDashboard from "./pages/Owner/OwnerDashboard";
 import OwnerHousings from "./pages/Owner/OwnerHousings";
@@ -29,10 +31,19 @@ import OwnerHousingForm from "./pages/Owner/OwnerHousingForm";
 import OwnerBookings from "./pages/Owner/OwnerBookings";
 import NotFound from "./pages/NotFound";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ScrollToTop />
         <FavoritesProvider>
           <div className="flex min-h-screen flex-col bg-slate-50">
             <Navbar />
@@ -41,15 +52,14 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
 
-                <Route path="/housing" element={<HousingList />} />
-                <Route path="/housing/compare" element={<HousingCompare />} />
-                <Route path="/housing/:id" element={<HousingDetails />} />
-
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/contact" element={<ContactUs />} />
 
                 <Route element={<ProtectedRoute />}>
+                  <Route path="/housing" element={<HousingList />} />
+                  <Route path="/housing/compare" element={<HousingCompare />} />
+                  <Route path="/housing/:id" element={<HousingDetails />} />
+                  <Route path="/contact" element={<ContactUs />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/favorites" element={<Favorites />} />
                   <Route path="/bookings" element={<MyBookings />} />
@@ -63,6 +73,7 @@ function App() {
                   <Route path="/admin" element={<Admin />}>
                     <Route index element={<AdminDashboard />} />
                     <Route path="users" element={<AdminUsers />} />
+                    <Route path="inbox" element={<AdminInbox />} />
                   </Route>
                 </Route>
 

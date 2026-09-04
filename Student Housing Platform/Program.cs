@@ -103,7 +103,11 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(
                 "http://localhost:5173",
-                "https://localhost:5173")
+                "https://localhost:5173",
+                "https://localhost:44335",
+                "http://localhost:44335",
+                "http://127.0.0.1:5173",
+                "https://127.0.0.1:5173")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -149,6 +153,8 @@ app.UseMiddleware<Student_Housing_Platform.Middleware.RateLimitingMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var Services = scope.ServiceProvider;
+    var db = Services.GetRequiredService<SHP_DbContext>();
+    await db.Database.MigrateAsync();
     var userManager = Services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = Services.GetRequiredService<RoleManager<IdentityRole>>();
     var adminSettings = Services.GetRequiredService<IOptions<AdminSettings>>().Value;

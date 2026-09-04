@@ -11,6 +11,7 @@ namespace Student_Housing_Platform.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class HousingsController : ControllerBase
     {
         private readonly IHousingRepository _repo;

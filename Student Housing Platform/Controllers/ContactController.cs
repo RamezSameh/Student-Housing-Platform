@@ -5,6 +5,7 @@ namespace Student_Housing_Platform.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ContactController : ControllerBase
     {
         private readonly IContactRepository _repo;

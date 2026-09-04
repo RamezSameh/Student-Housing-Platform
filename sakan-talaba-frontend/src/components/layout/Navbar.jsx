@@ -76,10 +76,10 @@ export default function Navbar() {
           <NavLink to="/" end className={navLinkClass}>
             Home
           </NavLink>
-          <NavLink to="/housing" className={navLinkClass}>
+          {isAuthenticated && <NavLink to="/housing" className={navLinkClass}>
             <Search size={17} />
             Find Housing
-          </NavLink>
+          </NavLink>}
           {isAuthenticated && (
             <NavLink to="/my-bookings" className={navLinkClass}>
               <CalendarDays size={18} />
@@ -98,10 +98,10 @@ export default function Navbar() {
               Owner Dashboard
             </NavLink>
           )}
-          <NavLink to="/contact" className={navLinkClass}>
+          {isAuthenticated && <NavLink to={isAdmin ? "/admin/inbox" : "/contact"} className={navLinkClass}>
             <Phone size={17} />
-            Contact Us
-          </NavLink>
+            {isAdmin ? "Inbox" : "Contact Us"}
+          </NavLink>}
         </div>
 
         {/* Desktop actions */}
@@ -237,10 +237,10 @@ export default function Navbar() {
               Home
             </NavLink>
 
-            <NavLink to="/housing" onClick={closeMobileMenu} className={mobileNavLinkClass}>
+            {isAuthenticated && <NavLink to="/housing" onClick={closeMobileMenu} className={mobileNavLinkClass}>
               <Search size={19} />
               Find Housing
-            </NavLink>
+            </NavLink>}
 
             <NavLink to="/favorites" onClick={closeMobileMenu} className={mobileNavLinkClass}>
               <Heart size={19} />
@@ -252,10 +252,10 @@ export default function Navbar() {
               )}
             </NavLink>
 
-            <NavLink to="/contact" onClick={closeMobileMenu} className={mobileNavLinkClass}>
+            {isAuthenticated && <NavLink to={isAdmin ? "/admin/inbox" : "/contact"} onClick={closeMobileMenu} className={mobileNavLinkClass}>
               <Phone size={19} />
-              Contact Us
-            </NavLink>
+              {isAdmin ? "Inbox" : "Contact Us"}
+            </NavLink>}
 
             {isAuthenticated && (
               <>

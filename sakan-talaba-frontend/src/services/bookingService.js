@@ -75,3 +75,7 @@ export const confirmPayment = async (bookingId, transactionId) => {
   });
   return data;
 };
+
+export const cancelBooking = async (bookingId) => {
+  await api.post(`/Bookings/${bookingId}/cancel`);
+};

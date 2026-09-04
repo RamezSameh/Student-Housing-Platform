@@ -43,7 +43,6 @@ export const getHousings = async (
     housingType: filters.housingType,
     roomType: filters.roomType,
     genderType: filters.genderType,
-    isFurnished: filters.isFurnished,
     amenities: filters.amenities,
     minimumRating: filters.minimumRating,
     sortBy: filters.sortBy,
@@ -113,7 +112,7 @@ export const getHousings = async (
 // ============================================================
 // Recommended Housing
 //
-// SAME SEARCH API
+// Dedicated recommendation endpoint
 // ============================================================
 
 export const getRecommendedHousing = async (
@@ -121,19 +120,13 @@ export const getRecommendedHousing = async (
   page = 1,
   pageSize = 6
 ) => {
-  return getHousings(
-    {
-      ...filters,
-
-      sortBy:
-        filters.sortBy || "rating",
-
-      sortDirection:
-        filters.sortDirection || "desc",
-    },
+  const params = new URLSearchParams({
+    ...Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== undefined && value !== "")),
     page,
-    pageSize
-  );
+    pageSize,
+  });
+  const { data } = await api.get(`/Housings/recommended?${params.toString()}`);
+  return data;
 };
 
 // ============================================================

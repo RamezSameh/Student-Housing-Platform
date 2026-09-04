@@ -32,6 +32,7 @@ import {
 } from "../../services/housingService";
 
 import NearbyHousing from "../../components/housing/NearbyHousing";
+import { useAuth } from "../../context/AuthContext";
 
 import {
   getUniversities,
@@ -39,6 +40,7 @@ import {
 
 function Home() {
   const navigate = useNavigate();
+  const { isAuthenticated, isOwner, isAdmin, loading: authLoading } = useAuth();
 
   // ==========================================================
   // State
@@ -84,6 +86,11 @@ function Home() {
   // ==========================================================
 
   useEffect(() => {
+    if (authLoading || !isAuthenticated || isOwner || isAdmin) {
+      setLoading(false);
+      setRecommendedHousing([]);
+      return undefined;
+    }
     let isMounted = true;
 
     const loadRecommendedHousing =
@@ -140,7 +147,7 @@ function Home() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authLoading, isAuthenticated, isOwner, isAdmin]);
 
 
   {
@@ -432,6 +439,7 @@ function Home() {
           Recommended Housing
       ====================================================== */}
 
+      {isAuthenticated && !isOwner && !isAdmin && (
       <section className="bg-slate-50 py-20">
 
         <div className="mx-auto max-w-7xl px-6">
@@ -573,6 +581,7 @@ function Home() {
         </div>
 
       </section>
+      )}
 
       {/* ======================================================
           Why Choose Us

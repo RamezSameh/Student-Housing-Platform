@@ -233,7 +233,6 @@ function HousingDetails() {
   const address = housing.address || "";
   const housingTypeName = housing.housingTypeName || "";
   const genderType = housing.genderType || "";
-  const isFurnished = housing.isFurnished === true;
   const amenities = Array.isArray(housing.amenities) ? housing.amenities : [];
   const owner = housing.owner || null;
 
@@ -488,7 +487,6 @@ function HousingDetails() {
               {genderType && (
                 <InfoCard label="Gender" value={genderType} />
               )}
-              <InfoCard label="Furnished" value={isFurnished ? "Yes" : "No"} />
               {address && (
                 <InfoCard label="Address" value={address} />
               )}

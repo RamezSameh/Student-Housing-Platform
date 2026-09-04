@@ -301,6 +301,24 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             return booking;
         }
 
+        public async Task CancelBookingAsync(int bookingId, string userId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.Payment)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == userId);
+
+            if (booking == null) throw new KeyNotFoundException("Booking not found.");
+            if (booking.bookingStatus != BookingStatus.Pending &&
+                booking.bookingStatus != BookingStatus.OwnerApproved)
+                throw new InvalidOperationException("Only bookings awaiting approval or payment can be cancelled.");
+            if (booking.Payment?.Status == PaymentStatus.Succeeded ||
+                booking.bookingStatus == BookingStatus.Confirmed)
+                throw new InvalidOperationException("A completed booking cannot be cancelled.");
+
+            booking.bookingStatus = BookingStatus.Cancelled;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<int> ProcessApprovalDeadlinesAsync(DateTime utcNow, CancellationToken cancellationToken)
         {
             var due = await _context.Bookings.Where(b => b.bookingStatus == BookingStatus.Pending && b.ApprovalDeadline <= utcNow).ToListAsync(cancellationToken);
