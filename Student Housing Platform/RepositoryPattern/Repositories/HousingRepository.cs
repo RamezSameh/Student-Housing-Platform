@@ -312,7 +312,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                         DistanceKm = distance,
                         Rating = rating,
                         IsVerified = item.IsVerified,
-                        City = item.City
+                        City = item.City,
+                        Latitude = item.Latitude,
+                        Longitude = item.Longitude
                     };
                 })
                 .ToList();
@@ -480,7 +482,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                                 r => r.HousingId == item.HousingId)
                             ?.Avg ?? 0,
                     IsVerified = item.IsVerified,
-                    City = item.City
+                    City = item.City,
+                    Latitude = item.Latitude,
+                    Longitude = item.Longitude
                 })
                 .ToList();
         }

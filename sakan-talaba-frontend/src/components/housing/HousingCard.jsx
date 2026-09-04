@@ -1,4 +1,4 @@
-import { MapPin, Star, Heart, Navigation, ShieldCheck, Loader2 } from "lucide-react";
+import { MapPin, Star, Heart, Navigation, ShieldCheck, Loader2, Map } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
@@ -22,6 +22,10 @@ function HousingCard({ housing }) {
   const image = housing.imageUrl || housing.primaryImageUrl || housing.image || null;
   const matchScore =
     housing.matchScore !== undefined && housing.matchScore !== null ? Number(housing.matchScore) : null;
+  const latitude = Number(housing.latitude);
+  const longitude = Number(housing.longitude);
+  const hasCoords = Number.isFinite(latitude) && Number.isFinite(longitude) && (latitude !== 0 || longitude !== 0);
+  const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
 
   const handleFavorite = async (e) => {
     e.preventDefault();
@@ -125,6 +129,19 @@ function HousingCard({ housing }) {
             Details
           </Link>
         </div>
+
+        {mapsUrl && (
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+          >
+            <Map size={15} />
+            View on Google Maps
+          </a>
+        )}
       </div>
     </div>
   );

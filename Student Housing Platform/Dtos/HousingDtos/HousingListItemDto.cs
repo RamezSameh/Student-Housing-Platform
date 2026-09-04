@@ -9,6 +9,8 @@ namespace Student_Housing_Platform.Dtos.HousingDtos
         public double Rating { get; set; }
         public bool IsVerified { get; set; }
         public string City { get; set; } = string.Empty;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 
     public class HousingRoomDto

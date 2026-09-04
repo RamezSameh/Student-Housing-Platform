@@ -101,7 +101,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins(
+                "http://localhost:5173",
+                "https://localhost:5173")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -124,6 +126,7 @@ builder.Services.AddSingleton<IDistanceCalculator, DistanceCalculator>();
 // Housing repository
 builder.Services.AddScoped<IHousingRepository, HousingRepository>();
 builder.Services.AddScoped<IHousingTypeRepository, HousingTypeRepository>();
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
 // Recommendation service
 builder.Services.AddScoped<Student_Housing_Platform.Services.Recommendation.IRecommendationService, Student_Housing_Platform.Services.Recommendation.RecommendationService>();
 // Admin service
@@ -151,7 +154,7 @@ using (var scope = app.Services.CreateScope())
     var logger = Services.GetRequiredService<ILogger<Program>>();
 
     //create roles (Admin, Student, Owner, Customer)
-    string[] roles = { "Admin", "Student", "Owner", "Customer" };
+    string[] roles = { "Admin", "Student", "Owner" };
     foreach (var role in roles)
     {
         var roleExist = await roleManager.RoleExistsAsync(role);
