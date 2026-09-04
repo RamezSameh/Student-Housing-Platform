@@ -177,7 +177,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Amenities");
+                    b.ToTable("Amenities", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.ApplicationUser", b =>
@@ -358,7 +358,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.ContactMessage", b =>
@@ -405,7 +405,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ContactMessages");
+                    b.ToTable("ContactMessages", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Conversation", b =>
@@ -426,7 +426,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasKey("ConversationId");
 
-                    b.ToTable("Conversations");
+                    b.ToTable("Conversations", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Favorite", b =>
@@ -447,7 +447,7 @@ namespace Student_Housing_Platform.Migrations
                     b.HasIndex("UserId", "HousingId")
                         .IsUnique();
 
-                    b.ToTable("Favorites");
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Housing", b =>
@@ -523,7 +523,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Housings");
+                    b.ToTable("Housings", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingAmenity", b =>
@@ -546,7 +546,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("HousingId");
 
-                    b.ToTable("HousingAmenities");
+                    b.ToTable("HousingAmenities", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingImage", b =>
@@ -577,7 +577,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("HousingId");
 
-                    b.ToTable("HousingImages");
+                    b.ToTable("HousingImages", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingReview", b =>
@@ -611,7 +611,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HousingReviews");
+                    b.ToTable("HousingReviews", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingRoom", b =>
@@ -645,7 +645,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("HousingId");
 
-                    b.ToTable("HousingRooms");
+                    b.ToTable("HousingRooms", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingType", b =>
@@ -673,7 +673,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasKey("HousingTypeId");
 
-                    b.ToTable("HousingTypes");
+                    b.ToTable("HousingTypes", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Message", b =>
@@ -704,7 +704,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Notification", b =>
@@ -738,7 +738,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Payment", b =>
@@ -774,7 +774,7 @@ namespace Student_Housing_Platform.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Review", b =>
@@ -811,7 +811,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.University", b =>
@@ -861,7 +861,7 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Universities");
+                    b.ToTable("Universities", (string)null);
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.UniversityHousing", b =>
@@ -885,7 +885,7 @@ namespace Student_Housing_Platform.Migrations
                     b.HasIndex("UniversityId", "HousingId")
                         .IsUnique();
 
-                    b.ToTable("UniversityHousings");
+                    b.ToTable("UniversityHousings", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

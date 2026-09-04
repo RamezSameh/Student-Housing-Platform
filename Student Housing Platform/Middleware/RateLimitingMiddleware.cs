@@ -20,6 +20,14 @@ namespace Student_Housing_Platform.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
+            // Preflight requests are handled by CORS and should not consume
+            // the API request quota.
+            if (HttpMethods.IsOptions(context.Request.Method))
+            {
+                await _next(context);
+                return;
+            }
+
             var ip = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
             var key = $"rl_{ip}";
 

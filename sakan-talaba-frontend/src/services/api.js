@@ -29,6 +29,12 @@ export const getApiError = (error, fallback = "Something went wrong") => {
   if (data?.message) return data.message;
   if (data?.Message) return data.Message;
   if (Array.isArray(data?.errors)) return data.errors.join(", ");
+  if (data && typeof data === "object") {
+    const validationMessages = Object.values(data)
+      .flatMap((value) => Array.isArray(value) ? value : [])
+      .filter((value) => typeof value === "string");
+    if (validationMessages.length) return validationMessages.join(", ");
+  }
   if (data?.title) return data.title;
   return error?.message || fallback;
 };

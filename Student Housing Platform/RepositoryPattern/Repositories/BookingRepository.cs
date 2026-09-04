@@ -18,6 +18,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             {
                 throw new KeyNotFoundException("Housing room not found");
             }
+            if (!room.IsAvailable || room.AvailableBeds <= 0)
+            {
+                throw new InvalidOperationException("Selected room is not currently available.");
+            }
 
             if (createHousingBookingDto.DurationMonths <= 0)
                 throw new InvalidOperationException("Duration must be at least one month.");
@@ -27,7 +31,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             // check availability: ensure no overlapping active bookings for same housing room
             var overlap = await _context.Bookings.AnyAsync(b => b.HousingRoomId == room.RoomId &&
                 !(moveOutDate <= b.CheckInDate || moveInDate >= b.CheckOutDate) &&
-                b.bookingStatus != BookingStatus.Cancelled);
+                b.bookingStatus != BookingStatus.Cancelled &&
+                b.bookingStatus != BookingStatus.Rejected);
             if (overlap)
             {
                 throw new InvalidOperationException("Selected room is not available for the requested dates.");
@@ -63,6 +68,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             if (room == null)
             {
                 throw new Exception("Room not found");
+            }
+            if (!room.IsAvailable || room.AvailableBeds <= 0)
+            {
+                throw new InvalidOperationException("Selected room is not currently available.");
             }
             var pricePerNight = room.Price;
             var numberOfNights = (createBookingDto.CheckOut - createBookingDto.CheckIn).Days;

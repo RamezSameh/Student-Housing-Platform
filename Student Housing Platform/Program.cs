@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,7 +62,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 // FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Student_Housing_Platform.Validators.CreateHousingDtoValidator>();
@@ -146,8 +151,6 @@ var app = builder.Build();
 
 // Use global exception handling middleware
 app.UseGlobalExceptionHandling();
-// Rate limiting
-app.UseMiddleware<Student_Housing_Platform.Middleware.RateLimitingMiddleware>();
 
 // seeding default admin user and roles
 using (var scope = app.Services.CreateScope())
@@ -230,7 +233,11 @@ if (app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 app.UseRouting();
+// CORS must run before custom middleware so preflight responses include the
+// headers required by browser clients.
 app.UseCors("AllowFrontend");
+// Rate limiting
+app.UseMiddleware<Student_Housing_Platform.Middleware.RateLimitingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 // Map SignalR hubs

@@ -52,7 +52,7 @@ export const createHousingBooking = async ({
   notes,
   paymentMethod,
 }) => {
-  const { data } = await api.post("/Bookings/housing", {
+  const payload = {
     housingRoomId,
     checkIn,
     checkOut,
@@ -64,8 +64,18 @@ export const createHousingBooking = async ({
     durationMonths,
     notes,
     paymentMethod,
-  });
-  return data;
+  };
+  try {
+    const { data } = await api.post("/Bookings/housing", payload);
+    return data;
+  } catch (error) {
+    console.error("Create housing booking failed:", {
+      payload,
+      status: error.response?.status,
+      response: error.response?.data,
+    });
+    throw error;
+  }
 };
 
 export const confirmPayment = async (bookingId, transactionId) => {

@@ -22,6 +22,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
             int page = 1,
             int pageSize = 20,
             CancellationToken cancellationToken = default);
+        Task<PagedResultDto<HousingListItemDto>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
         Task<HousingDetailDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<int> CreateAsync(CreateHousingDto dto, string ownerId, CancellationToken cancellationToken = default);
         Task<bool> UpdateAsync(int id, UpdateHousingDto dto, string userId, bool isAdmin = false);

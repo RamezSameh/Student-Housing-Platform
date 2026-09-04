@@ -9,6 +9,9 @@ namespace Student_Housing_Platform.Validators
         {
             RuleFor(x => x.HousingRoomId).GreaterThan(0);
             RuleFor(x => x.CheckIn).GreaterThan(DateTime.UtcNow.Date).WithMessage("Move-in date must be in the future.");
+            RuleFor(x => x.CheckOut)
+                .GreaterThan(x => x.CheckIn)
+                .WithMessage("Move-out date must be after the move-in date.");
             RuleFor(x => x.DurationMonths).InclusiveBetween(1, 120);
             RuleFor(x => x.NationalId).NotEmpty().MaximumLength(50);
             RuleFor(x => x.UniversityId).MaximumLength(50);

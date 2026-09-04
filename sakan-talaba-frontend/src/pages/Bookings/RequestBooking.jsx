@@ -20,6 +20,13 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { getApiError } from "../../services/api";
 
+const toDateInputValue = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
+
 function RequestBooking() {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -93,6 +100,9 @@ function RequestBooking() {
 
         const startDate =
             new Date(checkIn);
+        const tomorrow = new Date();
+        tomorrow.setHours(0, 0, 0, 0);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
         const duration = Number(form.durationMonths);
 
@@ -100,10 +110,11 @@ function RequestBooking() {
             Number.isNaN(
                 startDate.getTime()
             ) ||
+            startDate < tomorrow ||
             !Number.isFinite(duration) || duration < 1
         ) {
             setError(
-                "Please enter valid dates."
+                "Move-in date must be tomorrow or later, and duration must be at least one month."
             );
             return;
         }
@@ -246,9 +257,11 @@ function RequestBooking() {
                                             )
                                         }
                                         min={
-                                            new Date()
-                                                .toISOString()
-                                                .split("T")[0]
+                                            (() => {
+                                                const date = new Date();
+                                                date.setDate(date.getDate() + 1);
+                                                return toDateInputValue(date);
+                                            })()
                                         }
                                         className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />

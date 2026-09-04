@@ -429,6 +429,27 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         }
 
         // =========================================================
+        // Get All
+        // =========================================================
+
+        public async Task<PagedResultDto<HousingListItemDto>> GetAllAsync(
+            int page = 1,
+            int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (page <= 0)
+                page = 1;
+
+            if (pageSize <= 0)
+                pageSize = 20;
+
+            return await SearchAsync(
+                page: page,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+        }
+
+        // =========================================================
         // Get By Ids
         // =========================================================
 
@@ -679,7 +700,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 Price = dto.Price,
                 HousingTypeId = dto.HousingTypeId,
                 GenderType = dto.GenderType,
-                IsFurnished = true,
+                IsFurnished = dto.IsFurnished,
                 IsAvailable = dto.IsAvailable,
                 OwnerId = ownerId,
                 CreatedAt = DateTime.UtcNow,
@@ -731,7 +752,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             entity.Price = dto.Price;
             entity.HousingTypeId = dto.HousingTypeId;
             entity.GenderType = dto.GenderType;
-            entity.IsFurnished = true;
+            entity.IsFurnished = dto.IsFurnished;
             entity.IsAvailable = dto.IsAvailable;
             entity.IsVerified = dto.IsVerified;
             entity.UpdatedAt = DateTime.UtcNow;

@@ -29,13 +29,18 @@ export const getContactMessages = async () => {
   return data?.data ?? data;
 };
 
+export const getAdminBookings = async () => {
+  const { data } = await api.get("/Admin/bookings");
+  return Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+};
+
 export const markContactMessageRead = async (id) => {
   await api.put(`/Contact/${id}/read`);
 };
 
 export const getAdminUsers = async () => {
   const { data } = await api.get("/Admin/customers");
-  return data;
+  return Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 };
 
 // GET /api/Admin/housings/pending
