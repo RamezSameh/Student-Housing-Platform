@@ -16,7 +16,21 @@ export const getDashboardStats = async () => {
     pendingHousing: stats?.pendingHousing ?? 0,
     totalBookings: stats?.totalBookings ?? 0,
     pendingBookings: stats?.pendingBookings ?? 0,
+    confirmedBookings: stats?.confirmedBookings ?? 0,
+    cancelledBookings: stats?.cancelledBookings ?? 0,
+    totalRevenue: stats?.totalRevenue ?? 0,
+    unreadContactMessages: stats?.unreadContactMessages ?? 0,
   };
+
+};
+
+export const getContactMessages = async () => {
+  const { data } = await api.get("/Contact");
+  return data?.data ?? data;
+};
+
+export const markContactMessageRead = async (id) => {
+  await api.put(`/Contact/${id}/read`);
 };
 
 export const getAdminUsers = async () => {

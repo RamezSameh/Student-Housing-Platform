@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMyHousingBookings } from "../../services/ownerService";
+import { getMyHousingBookings, approveBooking, rejectBooking } from "../../services/ownerService";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage";
 import { getApiError } from "../../services/api";
@@ -14,6 +14,7 @@ export default function OwnerBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -25,6 +26,19 @@ export default function OwnerBookings() {
       setError(getApiError(e, "Could not load bookings."));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateBooking = async (bookingId, action) => {
+    setBusyId(bookingId);
+    try {
+      if (action === "approve") await approveBooking(bookingId);
+      else await rejectBooking(bookingId);
+      await load();
+    } catch (e) {
+      setError(getApiError(e, "Could not update this booking."));
+    } finally {
+      setBusyId(null);
     }
   };
 
@@ -55,6 +69,7 @@ export default function OwnerBookings() {
             <th className="px-4 py-3">Total</th>
             <th className="px-4 py-3">Status</th>
             <th className="px-4 py-3">Payment</th>
+            <th className="px-4 py-3">Decision</th>
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -84,6 +99,14 @@ export default function OwnerBookings() {
                 </span>
               </td>
               <td className="px-4 py-3 text-slate-600">{b.paymentStatus}</td>
+              <td className="px-4 py-3">
+                {b.status?.toLowerCase() === "pending" ? (
+                  <div className="flex gap-2">
+                    <button type="button" disabled={busyId === b.bookingId} onClick={() => updateBooking(b.bookingId, "approve")} className="rounded-lg bg-green-600 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Approve</button>
+                    <button type="button" disabled={busyId === b.bookingId} onClick={() => updateBooking(b.bookingId, "reject")} className="rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Reject</button>
+                  </div>
+                ) : "—"}
+              </td>
             </tr>
           ))}
         </tbody>

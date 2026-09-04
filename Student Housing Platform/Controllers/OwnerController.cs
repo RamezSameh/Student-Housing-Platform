@@ -55,6 +55,24 @@ namespace Student_Housing_Platform.Controllers
             return Ok(new { success = true, data = bookings });
         }
 
+        [HttpPost("bookings/{bookingId}/approve")]
+        public async Task<IActionResult> ApproveBooking(int bookingId)
+        {
+            if (CurrentOwnerId == null) return Unauthorized();
+            try { return Ok(await _bookingRepository.ApproveBookingAsync(bookingId, CurrentOwnerId)); }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
+        }
+
+        [HttpPost("bookings/{bookingId}/reject")]
+        public async Task<IActionResult> RejectBooking(int bookingId)
+        {
+            if (CurrentOwnerId == null) return Unauthorized();
+            try { return Ok(await _bookingRepository.RejectBookingAsync(bookingId, CurrentOwnerId)); }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
+        }
+
         // GET: api/Owner/dashboard
         [HttpGet("dashboard")]
         public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
