@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Loader2, Save, ArrowLeft } from "lucide-react";
 import { getHousingById, getHousingTypes } from "../../services/housingService";
-import { createHousing, updateHousing } from "../../services/ownerService";
+import { createHousing, updateHousing, uploadHousingImage } from "../../services/ownerService";
 import { getApiError } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -31,6 +31,8 @@ export default function OwnerHousingForm() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +61,7 @@ export default function OwnerHousingForm() {
               isAvailable: housing.isAvailable !== false,
             });
             setExistingIsVerified(Boolean(housing.isVerified));
+            setImages(housing.images || []);
           }
         } else if (!cancelled && types.length > 0) {
           const firstId = types[0].housingTypeId ?? types[0].housingTypeIdDto;
@@ -68,6 +71,23 @@ export default function OwnerHousingForm() {
         if (!cancelled) setError(getApiError(e, "Could not load this housing."));
       } finally {
         if (!cancelled) setLoading(false);
+      }
+    };
+
+    const handleImageUpload = async (event) => {
+      const file = event.target.files?.[0];
+      if (!file || !id) return;
+      setUploading(true);
+      setError("");
+      try {
+        const result = await uploadHousingImage(id, file, images.length === 0);
+        const image = result?.data ?? result;
+        if (image?.imageUrl) setImages((previous) => [...previous, image]);
+      } catch (e) {
+        setError(getApiError(e, "Could not upload this image."));
+      } finally {
+        setUploading(false);
+        event.target.value = "";
       }
     };
 
@@ -218,7 +238,7 @@ export default function OwnerHousingForm() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Housing Type</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Housing Type (property)</label>
             <select
               required
               value={form.housingTypeId}
@@ -238,6 +258,11 @@ export default function OwnerHousingForm() {
             </select>
           </div>
         </div>
+
+        <p className="text-xs text-slate-500">
+          Housing Type describes the property (for example, apartment or villa).
+          Room Type is selected separately for each room (single, double, or shared).
+        </p>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">Gender Type</label>
@@ -280,10 +305,21 @@ export default function OwnerHousingForm() {
       </form>
 
       {isEdit && (
-        <p className="mt-4 max-w-2xl text-sm text-slate-500">
-          Need to manage photos? Image upload isn't wired into this form yet — use the
-          image endpoints directly, or ask to have an image manager added here.
-        </p>
+        <div className="mt-4 max-w-2xl rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="font-semibold text-slate-900">Photos</h3>
+          <p className="mt-1 text-sm text-slate-500">Upload photos and the first photo will be used as the primary image.</p>
+          <label className="mt-3 inline-flex cursor-pointer items-center rounded-lg border px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            {uploading ? "Uploading..." : "Choose image"}
+            <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="hidden" />
+          </label>
+          {images.length > 0 && (
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              {images.map((image) => (
+                <img key={image.imageId ?? image.id ?? image.imageUrl} src={image.imageUrl} alt="Housing" className="h-24 w-full rounded-lg object-cover" />
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -113,6 +113,7 @@ builder.Services.AddCors(options =>
 // DI registrations
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddHostedService<BookingApprovalBackgroundService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();

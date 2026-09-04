@@ -17,6 +17,24 @@ namespace Student_Housing_Platform.Models
         public decimal TotalAmount { get; set; }
         [Required]
         public BookingStatus bookingStatus { get; set; } = BookingStatus.Pending;
+        [Required, MaxLength(50)]
+        public string NationalId { get; set; } = string.Empty;
+        [Required, MaxLength(50)]
+        public string UniversityId { get; set; } = string.Empty;
+        [Required, MaxLength(150)]
+        public string StudentName { get; set; } = string.Empty;
+        [Required, MaxLength(30)]
+        public string Mobile { get; set; } = string.Empty;
+        [Required, EmailAddress, MaxLength(320)]
+        public string Email { get; set; } = string.Empty;
+        [Required, Range(1, 120)]
+        public int DurationMonths { get; set; }
+        [MaxLength(2000)]
+        public string? Notes { get; set; }
+        [Required]
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Stripe;
+        public DateTime ApprovalDeadline { get; set; }
+        public bool FinalReminderSent { get; set; }
 
         // --------------- Relationships ----------------
         [Required]

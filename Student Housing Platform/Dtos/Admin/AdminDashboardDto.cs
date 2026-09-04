@@ -11,5 +11,9 @@ namespace Student_Housing_Platform.Dtos.Admin
         public int PendingHousing { get; set; }
         public int TotalBookings { get; set; }
         public int PendingBookings { get; set; }
+        public int ConfirmedBookings { get; set; }
+        public int CancelledBookings { get; set; }
+        public decimal TotalRevenue { get; set; }
+        public int UnreadContactMessages { get; set; }
     }
 }

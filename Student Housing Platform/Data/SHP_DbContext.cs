@@ -43,6 +43,8 @@ namespace Student_Housing_Platform.Data
 
             builder.Entity<Booking>()
                 .Property(b => b.bookingStatus).HasConversion<string>();// Storing the BookingStatus enum as string in the database
+            builder.Entity<Booking>()
+                .Property(b => b.PaymentMethod).HasConversion<string>();
 
             builder.Entity<Payment>()
                 .Property(p => p.Method).HasConversion<string>(); // Storing the PaymentMethod enum as string in the database
@@ -164,4 +166,3 @@ namespace Student_Housing_Platform.Data
         }
     }
 }
-
