@@ -12,9 +12,11 @@ import {
   ChevronDown,
   Search,
   Building2,
+  Phone,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
+import NotificationBell from "./NotificationBell";
 
 const navLinkClass = ({ isActive }) =>
   `flex items-center gap-2 font-medium transition ${
@@ -96,6 +98,10 @@ export default function Navbar() {
               Owner Dashboard
             </NavLink>
           )}
+          <NavLink to="/contact" className={navLinkClass}>
+            <Phone size={17} />
+            Contact Us
+          </NavLink>
         </div>
 
         {/* Desktop actions */}
@@ -117,6 +123,8 @@ export default function Navbar() {
               </span>
             )}
           </NavLink>
+
+          {isAuthenticated && <NotificationBell />}
 
           {!isAuthenticated ? (
             <>
@@ -242,6 +250,11 @@ export default function Navbar() {
                   {favoritesCount}
                 </span>
               )}
+            </NavLink>
+
+            <NavLink to="/contact" onClick={closeMobileMenu} className={mobileNavLinkClass}>
+              <Phone size={19} />
+              Contact Us
             </NavLink>
 
             {isAuthenticated && (

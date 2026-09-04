@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 import Home from "./pages/Home/Home";
 import HousingList from "./pages/Housing/HousingList";
 import HousingDetails from "./pages/Housing/HousingDetails";
@@ -17,6 +18,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import ContactUs from "./pages/ContactUs";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
@@ -45,6 +47,7 @@ function App() {
 
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/contact" element={<ContactUs />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/profile" element={<Profile />} />
@@ -76,6 +79,8 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+
+            <Footer />
           </div>
         </FavoritesProvider>
       </AuthProvider>

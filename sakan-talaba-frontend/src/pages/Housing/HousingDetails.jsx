@@ -237,6 +237,11 @@ function HousingDetails() {
   const amenities = Array.isArray(housing.amenities) ? housing.amenities : [];
   const owner = housing.owner || null;
 
+  const latitude = Number(housing.latitude);
+  const longitude = Number(housing.longitude);
+  const hasCoords = Number.isFinite(latitude) && Number.isFinite(longitude) && (latitude !== 0 || longitude !== 0);
+  const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
+
   const roomsList = Array.isArray(housing.rooms)
     ? housing.rooms
     : Array.isArray(housing.housingRooms)
@@ -615,6 +620,18 @@ function HousingDetails() {
 
                 Share
               </button>
+
+              {mapsUrl && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  <MapPin size={18} />
+                  View on Maps
+                </a>
+              )}
             </div>
 
             {!canBook && (
