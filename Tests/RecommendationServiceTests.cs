@@ -23,8 +23,8 @@ namespace StudentHousingPlatform.Tests
             context.Universities.Add(uni);
 
             // seed two housings: one close & cheap, one far & expensive
-            var h1 = new Housing { HousingId = 1, Title = "CloseCheap", Latitude = 30.0370, Longitude = 31.2100, Price = 2000, IsAvailable = true };
-            var h2 = new Housing { HousingId = 2, Title = "FarExpensive", Latitude = 31.0000, Longitude = 32.0000, Price = 5000, IsAvailable = true };
+            var h1 = new Housing { HousingId = 1, Title = "CloseCheap", Address = "addr1", City = "Cairo", Latitude = 30.0370, Longitude = 31.2100, Price = 2000, IsAvailable = true, OwnerId = "owner1" };
+            var h2 = new Housing { HousingId = 2, Title = "FarExpensive", Address = "addr2", City = "Cairo", Latitude = 31.0000, Longitude = 32.0000, Price = 5000, IsAvailable = true, OwnerId = "owner2" };
             context.Housings.AddRange(h1, h2);
 
             // reviews: h1 has rating 5, h2 has rating 3
