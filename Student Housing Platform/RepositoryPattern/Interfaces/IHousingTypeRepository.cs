@@ -1,7 +1,7 @@
 ﻿using Student_Housing_Platform.Dtos.HousingTypeDtos;
 using Student_Housing_Platform.Models;
 using Microsoft.EntityFrameworkCore;
-using Student_Housing_Platform.Dtos.RoomTypeDtos;
+using Student_Housing_Platform.Dtos.HousingTypeDtos;
 
 namespace Student_Housing_Platform.RepositoryPattern.Interfaces
 {

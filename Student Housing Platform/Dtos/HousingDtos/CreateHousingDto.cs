@@ -1,4 +1,4 @@
-using Student_Housing_Platform.Dtos.RoomTypeDtos;
+using Student_Housing_Platform.Dtos.HousingTypeDtos;
 using System.ComponentModel.DataAnnotations;
 
 namespace Student_Housing_Platform.Dtos.HousingDtos
