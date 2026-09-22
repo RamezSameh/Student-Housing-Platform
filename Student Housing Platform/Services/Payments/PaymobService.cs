@@ -15,10 +15,14 @@ namespace Student_Housing_Platform.Services.Payments
     public interface IPaymobService
     {
         /// <summary>
-        /// Creates a Paymob order + payment key and returns the hosted iframe URL
-        /// the student must be redirected to in order to pay.
+        /// Creates a Paymob order + payment key and returns the URL the student
+        /// must be redirected to in order to pay (hosted card iframe, or the
+        /// wallet provider redirect for mobile-wallet payments).
         /// </summary>
-        Task<PaymobPaymentResult> CreatePaymentAsync(Booking booking, CancellationToken cancellationToken = default);
+        /// <param name="booking">The booking being paid.</param>
+        /// <param name="useWallet">When true, pays with a mobile wallet (Vodafone Cash, Orange Money, ...).</param>
+        /// <param name="walletNumber">Egyptian mobile number linked to the wallet (01xxxxxxxxx). Required when useWallet is true.</param>
+        Task<PaymobPaymentResult> CreatePaymentAsync(Booking booking, bool useWallet = false, string? walletNumber = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Verifies the HMAC signature Paymob sends on the transaction-processed
@@ -42,22 +46,33 @@ namespace Student_Housing_Platform.Services.Payments
             _logger = logger;
         }
 
-        private void EnsureConfigured()
+        private void EnsureConfigured(bool useWallet)
         {
+            var integrationOk = useWallet ? _settings.WalletIntegrationId != 0 : _settings.CardIntegrationId != 0;
             if (string.IsNullOrWhiteSpace(_settings.ApiKey)
                 || string.IsNullOrWhiteSpace(_settings.HmacSecret)
-                || _settings.CardIntegrationId == 0
-                || _settings.IframeId == 0)
+                || !integrationOk
+                || (!useWallet && _settings.IframeId == 0))
             {
                 throw new InvalidOperationException(
-                    "Paymob is not configured. Fill the Paymob section in appsettings.json (ApiKey, HmacSecret, CardIntegrationId, IframeId).");
+                    "Paymob is not configured. Fill the Paymob section in appsettings.json (ApiKey, HmacSecret, CardIntegrationId, WalletIntegrationId, IframeId).");
             }
         }
 
-        public async Task<PaymobPaymentResult> CreatePaymentAsync(Booking booking, CancellationToken cancellationToken = default)
+        private static bool IsValidEgyptianMobile(string? number) =>
+            !string.IsNullOrWhiteSpace(number) &&
+            System.Text.RegularExpressions.Regex.IsMatch(number.Trim(), @"^01[0-9]{9}$");
+
+        public async Task<PaymobPaymentResult> CreatePaymentAsync(Booking booking, bool useWallet = false, string? walletNumber = null, CancellationToken cancellationToken = default)
         {
-            EnsureConfigured();
+            EnsureConfigured(useWallet);
+
+            if (useWallet && !IsValidEgyptianMobile(walletNumber))
+                throw new InvalidOperationException("A valid Egyptian mobile wallet number (01xxxxxxxxx) is required.");
+
             var baseUrl = _settings.BaseUrl.TrimEnd('/');
+
+            var integrationId = useWallet ? _settings.WalletIntegrationId : _settings.CardIntegrationId;
 
             // ---- Step 1: authentication token ----
             var authBody = JsonSerializer.Serialize(new { api_key = _settings.ApiKey }, JsonOptions);
@@ -112,7 +127,7 @@ namespace Student_Housing_Platform.Services.Payments
                     postal_code = "NA",
                 },
                 currency = _settings.Currency,
-                integration_id = _settings.CardIntegrationId,
+                integration_id = integrationId,
             }, JsonOptions);
             using var keyResponse = await _http.PostAsync(
                 $"{baseUrl}/acceptance/payment_keys",
@@ -124,6 +139,31 @@ namespace Student_Housing_Platform.Services.Payments
                 ?? throw new InvalidOperationException("Paymob payment token was empty.");
 
             _logger.LogInformation("Paymob order {OrderId} created for booking {BookingId}", paymobOrderId, booking.BookingId);
+
+            // ---- Step 4 (wallet only): ask Paymob for the wallet-provider redirect URL ----
+            if (useWallet)
+            {
+                var payBody = JsonSerializer.Serialize(new
+                {
+                    source = new { identifier = walletNumber!.Trim(), subtype = "WALLET" },
+                    payment_token = paymentToken,
+                }, JsonOptions);
+                using var payResponse = await _http.PostAsync(
+                    $"{baseUrl}/acceptance/payments/pay",
+                    new StringContent(payBody, Encoding.UTF8, "application/json"),
+                    cancellationToken);
+                payResponse.EnsureSuccessStatusCode();
+                var payJson = await payResponse.Content.ReadAsStringAsync(cancellationToken);
+                var redirectUrl = JsonDocument.Parse(payJson).RootElement.GetProperty("redirect_url").GetString()
+                    ?? throw new InvalidOperationException("Paymob wallet redirect URL was empty.");
+
+                return new PaymobPaymentResult
+                {
+                    PaymentUrl = redirectUrl,
+                    PaymobOrderId = paymobOrderId,
+                    PaymentToken = paymentToken,
+                };
+            }
 
             return new PaymobPaymentResult
             {

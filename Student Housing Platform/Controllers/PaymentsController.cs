@@ -26,11 +26,12 @@ namespace Student_Housing_Platform.Controllers
             _logger = logger;
         }
 
-        public record InitiatePaymobDto(int BookingId);
+        public record InitiatePaymobDto(int BookingId, string? PaymentType = "card", string? WalletNumber = null);
 
         /// <summary>
-        /// Starts a Paymob card payment for an owner-approved booking.
-        /// Returns the Paymob hosted payment URL the student must be redirected to.
+        /// Starts a Paymob payment for an owner-approved booking.
+        /// PaymentType: "card" (default) or "wallet" (mobile wallet, requires WalletNumber).
+        /// Returns the URL the student must be redirected to in order to pay.
         /// </summary>
         [HttpPost("paymob/initiate")]
         [Authorize]
@@ -55,7 +56,8 @@ namespace Student_Housing_Platform.Controllers
 
             try
             {
-                var result = await _paymob.CreatePaymentAsync(booking, cancellationToken);
+                var useWallet = string.Equals(dto.PaymentType, "wallet", StringComparison.OrdinalIgnoreCase);
+                var result = await _paymob.CreatePaymentAsync(booking, useWallet, dto.WalletNumber, cancellationToken);
                 return Ok(new { paymentUrl = result.PaymentUrl, paymobOrderId = result.PaymobOrderId });
             }
             catch (InvalidOperationException ex)
