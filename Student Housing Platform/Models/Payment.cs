@@ -23,6 +23,6 @@ namespace Student_Housing_Platform.Models
         public int BookingId { get; set; } 
 
         [ForeignKey("BookingId")]
-        public Booking Booking { get; set; } // one Booking to one payment
+        public Booking Booking { get; set; } = null!; // one Booking to one payment
     }
 }

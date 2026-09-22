@@ -13,14 +13,14 @@
 
         //relationship with the user one user to many reviews
         [Required]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; } // one user to many reviews
+        public ApplicationUser User { get; set; } = null!; // one user to many reviews
 
         // relationship with the book one to one
         [Required]
         public int BookingId { get; set; }
         [ForeignKey("BookId")]
-        public Booking Booking { get; set; } // one booking to one review
+        public Booking Booking { get; set; } = null!; // one booking to one review
     }
 }

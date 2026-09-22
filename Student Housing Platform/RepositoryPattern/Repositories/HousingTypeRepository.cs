@@ -1,5 +1,4 @@
 ﻿using Student_Housing_Platform.Dtos.HousingTypeDtos;
-using Student_Housing_Platform.Dtos.HousingTypeDtos;
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 
 namespace Student_Housing_Platform.RepositoryPattern.Repositories
@@ -34,7 +33,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         }
         public async Task<HousingType> GetHousingTypeEntityByIdAsync(int housingTypeId)
         {
-            return await _context.HousingTypes.FindAsync(housingTypeId);
+            return await _context.HousingTypes.FindAsync(housingTypeId)
+                ?? throw new KeyNotFoundException($"HousingType with ID {housingTypeId} not found.");
         }
         public async Task AddHousingTypeAsync(CreateHousingTypeDto housingTypeDto)
         {

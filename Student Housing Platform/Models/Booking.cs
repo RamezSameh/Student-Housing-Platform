@@ -38,10 +38,10 @@ namespace Student_Housing_Platform.Models
 
         // --------------- Relationships ----------------
         [Required]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; } // many bookings by one user
+        public ApplicationUser User { get; set; } = null!; // many bookings by one user
 
 
         // new Housing booking support
@@ -53,8 +53,8 @@ namespace Student_Housing_Platform.Models
         [ForeignKey("HousingRoomId")]
         public HousingRoom? HousingRoom { get; set; }
 
-        public Payment Payment { get; set; } //one booking to one payment
+        public Payment Payment { get; set; } = null!; //one booking to one payment
 
-        public Review Review { get; set; } // one booking to one review
+        public Review Review { get; set; } = null!; // one booking to one review
     }
 }

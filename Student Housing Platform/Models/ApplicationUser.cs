@@ -5,12 +5,12 @@
         [Required]
         [MinLength(2)]
         [MaxLength(50)]
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
 
         [Required]
         [MinLength(2)]
         [MaxLength(50)]
-        public string LastName { get; set; }
+        public string LastName { get; set; } = string.Empty;
         [Required, MaxLength(50)]
         public string NationalId { get; set; } = string.Empty;
         [MaxLength(50)]
@@ -21,7 +21,7 @@
         public string Mobile { get; set; } = string.Empty;
         
         //Relationships
-        public ICollection<Booking> Bookings { get; set; } // many bookings by one user
-        public ICollection<Review> Reviews { get; set; }  // may reviews by one user
+        public ICollection<Booking> Bookings { get; set; } = null!; // many bookings by one user
+        public ICollection<Review> Reviews { get; set; } = null!;  // may reviews by one user
     }
 }

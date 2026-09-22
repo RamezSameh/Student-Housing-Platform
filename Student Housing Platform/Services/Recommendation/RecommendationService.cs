@@ -45,13 +45,13 @@ namespace Student_Housing_Platform.Services.Recommendation
             var query = _context.Housings.AsNoTracking().Where(h => h.IsAvailable);
             if (maxBudget.HasValue) query = query.Where(h => h.Price <= maxBudget.Value);
             if (!string.IsNullOrEmpty(genderPreference)) query = query.Where(h => h.GenderType == genderPreference);
-            if (!string.IsNullOrEmpty(roomType)) query = query.Where(h => h.Rooms.Any(r => r.HousingType != null && r.HousingType.HousingTypeName == roomType));
+            if (!string.IsNullOrEmpty(roomType)) query = query.Where(h => h.Rooms!.Any(r => r.HousingType != null && r.HousingType.HousingTypeName == roomType));
             if (requiredAmenities != null && requiredAmenities.Any())
             {
                 foreach (var aid in requiredAmenities)
                 {
                     var id = aid;
-                    query = query.Where(h => h.HousingAmenities.Any(ha => ha.AmenityId == id));
+                    query = query.Where(h => h.HousingAmenities!.Any(ha => ha.AmenityId == id));
                 }
             }
 

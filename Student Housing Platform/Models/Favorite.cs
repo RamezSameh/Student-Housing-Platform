@@ -6,7 +6,7 @@ namespace Student_Housing_Platform.Models
     public class Favorite
     {
         [Required]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
         [Required]
         public int HousingId { get; set; }
@@ -15,7 +15,7 @@ namespace Student_Housing_Platform.Models
 
         // navigation
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
-        public Housing Housing { get; set; }
+        public ApplicationUser User { get; set; } = null!;
+        public Housing Housing { get; set; } = null!;
     }
 }

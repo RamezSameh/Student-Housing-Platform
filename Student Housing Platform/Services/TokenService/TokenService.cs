@@ -15,7 +15,7 @@ namespace Student_Housing_Platform.Services.TokenService
             // 1. إعداد الـ "Claims" (المعلومات التي نريد وضعها داخل التوكن)
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };

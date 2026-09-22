@@ -21,7 +21,7 @@ namespace Student_Housing_Platform.Services.CloudinaryService
             _cloudinary = new Cloudinary(account);
             _cloudinary.Api.Secure = true; // Use HTTPS
         }
-        public async Task<(string url, string publicId)> UploadImageAsync(IFormFile file, string folder = null)
+        public async Task<(string url, string publicId)> UploadImageAsync(IFormFile file, string? folder = null)
         {
             if(file == null || file.Length == 0)
             {

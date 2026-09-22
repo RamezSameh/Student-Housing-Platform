@@ -45,7 +45,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 BookingDate = DateTime.UtcNow,
                 TotalAmount = totalAmount,
                 bookingStatus = BookingStatus.Pending,
-                NationalId = createHousingBookingDto.NationalId, UniversityId = createHousingBookingDto.UniversityId,
+                NationalId = createHousingBookingDto.NationalId, UniversityId = createHousingBookingDto.UniversityId ?? string.Empty,
                 StudentName = createHousingBookingDto.StudentName, Mobile = createHousingBookingDto.Mobile,
                 Email = createHousingBookingDto.Email, DurationMonths = createHousingBookingDto.DurationMonths,
                 Notes = createHousingBookingDto.Notes, PaymentMethod = createHousingBookingDto.PaymentMethod,
@@ -91,7 +91,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
         {
             return await _context.Bookings.Where(b => b.UserId == userId)
                 .Include(b => b.Payment)
-                .Include(b => b.HousingRoom).ThenInclude(r => r.Housing)
+                .Include(b => b.HousingRoom).ThenInclude(r => r!.Housing)
                 .Select(b => new BookingDto
                 {
                     //booking props
@@ -115,11 +115,11 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 .ToListAsync();
         }
 
-        public Task<BookingDto> GetBookingByIdAsync(int bookingId, string userId)
+        public Task<BookingDto?> GetBookingByIdAsync(int bookingId, string userId)
         {
             var booking = _context.Bookings
                 .Where(b => b.BookingId == bookingId && b.UserId == userId)
-                .Include(b => b.HousingRoom).ThenInclude(r => r.Housing)
+                .Include(b => b.HousingRoom).ThenInclude(r => r!.Housing)
                 .Include(b => b.Payment)
                 .Select(b => new BookingDto
                 {
@@ -145,12 +145,12 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
             return booking;
         }
 
-        public async Task<Booking> GetBookingEntityByIdAsync(int bookingId, string userId)
+        public async Task<Booking?> GetBookingEntityByIdAsync(int bookingId, string userId)
         {
             return await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == userId);
         }
 
-        public async Task<Booking> UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
+        public async Task<Booking?> UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
         {
             // 1. ابحث عن الـ Entity الأصلية في الداتا بيز
             var bookingToUpdate = await _context.Bookings.FindAsync(bookingId);

@@ -9,10 +9,10 @@ namespace Student_Housing_Platform.Models
 
         [Required]
         public int HousingId { get; set; }
-        public Housing Housing { get; set; }
+        public Housing Housing { get; set; } = null!;
 
         [Required]
         public int AmenityId { get; set; }
-        public Amenity Amenity { get; set; }
+        public Amenity Amenity { get; set; } = null!;
     }
 }

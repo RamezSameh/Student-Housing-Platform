@@ -295,7 +295,7 @@ namespace Student_Housing_Platform.Controllers
                 results.Add(new UserWithRolesDto
                 {
                     UserId = user.Id,
-                    Email = user.Email,
+                    Email = user.Email ?? string.Empty,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Roles = roles

@@ -144,7 +144,7 @@ namespace Student_Housing_Platform.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch(Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An internal error occurred. Payment failed.");
             }

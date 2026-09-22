@@ -6,6 +6,6 @@
         public int BookingId { get; set; } // (تأكيد على أنهي حجز)
 
         [Required]
-        public string TransactionId { get; set; } // (رقم العملية من Stripe)
+        public string TransactionId { get; set; } = string.Empty; // (رقم العملية من Stripe)
     }
 }

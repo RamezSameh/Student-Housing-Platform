@@ -44,6 +44,27 @@ builder.Services.Configure<PaymobSettings>(builder.Configuration.GetSection(Paym
 builder.Services.AddHttpClient<IPaymobService, PaymobService>();
 var jwtSettings = new JWTSettings();
 builder.Configuration.GetSection(JWTSettings.SectionName).Bind(jwtSettings);
+
+// Fail fast in production when secrets are still placeholders —
+// a running API with a known JWT secret would accept forged tokens.
+if (!builder.Environment.IsDevelopment())
+{
+    if (string.IsNullOrWhiteSpace(jwtSettings.Secret)
+        || jwtSettings.Secret.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase)
+        || jwtSettings.Secret.Length < 32)
+    {
+        throw new InvalidOperationException(
+            "JWT:Secret is missing or still a placeholder. Set the JWT__Secret environment variable " +
+            "to a long random value (at least 32 characters) before running in production.");
+    }
+    var saPassword = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (saPassword is not null && saPassword.Contains("ChangeMe_Strong_Password_123", StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException(
+            "The database connection string still uses the placeholder SA password. " +
+            "Set a strong SA_PASSWORD before running in production.");
+    }
+}
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -225,7 +246,7 @@ using (var scope = app.Services.CreateScope())
             if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
-                logger.LogInformation("Existing user assigned to Admin role.", adminEmail);
+                logger.LogInformation("Existing user {Email} assigned to Admin role.", adminEmail);
             }
         }
     }

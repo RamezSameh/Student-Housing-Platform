@@ -14,7 +14,7 @@
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal PricePerMonth { get; set; }
-        public ICollection<Housing> Housings { get; set; } // many housings can have same housing type
+        public ICollection<Housing> Housings { get; set; } = null!; // many housings can have same housing type
         public ICollection<HousingRoom>? Rooms { get; set; } // many rooms can share the same room layout type
 
     }
