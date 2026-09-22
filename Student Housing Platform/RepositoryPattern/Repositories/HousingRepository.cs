@@ -247,7 +247,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     h.City,
                     h.IsFurnished,
                     HousingTypeName =
-                        h.HousingType.HousingTypeName
+                        h.HousingType.HousingTypeName,
+                    OwnerName =
+                        h.Owner != null ? h.Owner.FirstName + " " + h.Owner.LastName : null
                 })
                 .ToListAsync(cancellationToken);
 
@@ -314,7 +316,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                         IsVerified = item.IsVerified,
                         City = item.City,
                         Latitude = item.Latitude,
-                        Longitude = item.Longitude
+                        Longitude = item.Longitude,
+                        OwnerName = item.OwnerName
                     };
                 })
                 .ToList();

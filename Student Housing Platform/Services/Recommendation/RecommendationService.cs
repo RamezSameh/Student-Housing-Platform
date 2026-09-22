@@ -69,7 +69,7 @@ namespace Student_Housing_Platform.Services.Recommendation
                 query = query.Where(h => h.Latitude >= minLat && h.Latitude <= maxLat && h.Longitude >= minLon && h.Longitude <= maxLon);
             }
 
-            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City }).ToListAsync(cancellationToken);
+            var candidates = await query.Select(h => new { h.HousingId, h.Title, h.Price, h.Latitude, h.Longitude, h.IsVerified, h.City, OwnerName = h.Owner != null ? h.Owner.FirstName + " " + h.Owner.LastName : null }).ToListAsync(cancellationToken);
 
             if (!candidates.Any())
             {
@@ -156,7 +156,8 @@ namespace Student_Housing_Platform.Services.Recommendation
                     MatchScore = matchScore,
                     DistanceKm = Math.Round(distanceKm, 2),
                     Price = item.Price,
-                    Rating = Math.Round(avgRating, 2)
+                    Rating = Math.Round(avgRating, 2),
+                    OwnerName = item.OwnerName
                 });
             }
 

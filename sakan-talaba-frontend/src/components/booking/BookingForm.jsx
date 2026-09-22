@@ -141,7 +141,7 @@ const BookingForm = ({ room }) => {
                     <textarea placeholder="ملاحظات (اختياري)" value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-lg border px-3 py-3" rows={3} />
                     <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full rounded-lg border px-3 py-3">
                         <option value="CashOnArrival">الدفع عند الوصول</option>
-                        <option value="Paymob">الدفع الإلكتروني (بطاقة بنكية)</option>
+                        <option value="Paymob">الدفع الإلكتروني (بطاقة / محفظة)</option>
                     </select>
                 </div>
 

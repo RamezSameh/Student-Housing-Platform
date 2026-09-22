@@ -9,6 +9,7 @@ namespace Student_Housing_Platform.OptionsPattern.Settings
         /// <summary>HMAC secret used to verify Paymob callbacks.</summary>
         public string HmacSecret { get; set; } = string.Empty;
         public int CardIntegrationId { get; set; }
+        public int WalletIntegrationId { get; set; }
         public int IframeId { get; set; }
         public string Currency { get; set; } = "EGP";
         public string BaseUrl { get; set; } = "https://accept.paymob.com/api";
