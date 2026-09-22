@@ -284,7 +284,7 @@ function RequestBooking() {
                                 <span className="mb-2 block text-sm font-semibold text-slate-700">Payment method</span>
                                 <select value={form.paymentMethod} onChange={(event) => setForm({ ...form, paymentMethod: event.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3">
                                     <option value="CashOnArrival">Cash on arrival</option>
-                                    <option value="Stripe">Online payment</option>
+                                    <option value="Paymob">Online payment (card)</option>
                                 </select>
                             </label>
                             <label className="block md:col-span-2">

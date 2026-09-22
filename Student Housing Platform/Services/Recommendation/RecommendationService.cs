@@ -45,7 +45,7 @@ namespace Student_Housing_Platform.Services.Recommendation
             var query = _context.Housings.AsNoTracking().Where(h => h.IsAvailable);
             if (maxBudget.HasValue) query = query.Where(h => h.Price <= maxBudget.Value);
             if (!string.IsNullOrEmpty(genderPreference)) query = query.Where(h => h.GenderType == genderPreference);
-            if (!string.IsNullOrEmpty(roomType)) query = query.Where(h => h.Rooms.Any(r => r.RoomType == roomType));
+            if (!string.IsNullOrEmpty(roomType)) query = query.Where(h => h.Rooms.Any(r => r.HousingType != null && r.HousingType.HousingTypeName == roomType));
             if (requiredAmenities != null && requiredAmenities.Any())
             {
                 foreach (var aid in requiredAmenities)
@@ -141,7 +141,7 @@ namespace Student_Housing_Platform.Services.Recommendation
                 double roomScore = 1.0;
                 if (!string.IsNullOrEmpty(roomType))
                 {
-                    var exists = await _context.HousingRooms.AnyAsync(r => r.HousingId == item.HousingId && r.RoomType == roomType, cancellationToken);
+                    var exists = await _context.HousingRooms.AnyAsync(r => r.HousingId == item.HousingId && r.HousingType != null && r.HousingType.HousingTypeName == roomType, cancellationToken);
                     roomScore = exists ? 1.0 : 0.0;
                 }
 

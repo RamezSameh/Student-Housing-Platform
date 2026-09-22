@@ -112,6 +112,7 @@ namespace Student_Housing_Platform.Data
             {
                 b.HasKey(r => r.RoomId);
                 b.HasOne(r => r.Housing).WithMany(h => h.Rooms).HasForeignKey(r => r.HousingId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(r => r.HousingType).WithMany(t => t.Rooms).HasForeignKey(r => r.HousingTypeId).OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<Amenity>(b =>

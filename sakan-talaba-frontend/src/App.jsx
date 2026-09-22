@@ -12,6 +12,7 @@ import MyBookings from "./pages/Bookings/MyBookings";
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import RequestBooking from "./pages/Bookings/RequestBooking";
 import BookingConfirmation from "./pages/Bookings/BookingConfirmation";
+import PaymentResult from "./pages/Payment/PaymentResult";
 
 import { AuthProvider } from "./context/AuthContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
@@ -67,6 +68,7 @@ function App() {
                   <Route path="/bookings/request" element={<RequestBooking />} />
                   <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
                   <Route path="/bookings/:id" element={<BookingDetails />} />
+                  <Route path="/payment/result" element={<PaymentResult />} />
                 </Route>
 
                 <Route element={<ProtectedRoute adminOnly />}>

@@ -15,7 +15,7 @@
         // from Room navigation property
         public string RoomNumber { get; set; }
         public int Floor { get; set; }
-        // from RoomType navigation property
+        // from HousingType navigation property (via HousingRoom)
         public string RoomTypeName { get; set; }
         // from payment navigation property
         public string PaymentMethod { get; set; } // (Stripe, CashOnArrival)

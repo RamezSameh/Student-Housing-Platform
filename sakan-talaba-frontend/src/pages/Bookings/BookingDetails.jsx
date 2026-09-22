@@ -255,6 +255,7 @@ function BookingDetails() {
                         {booking.status?.toLowerCase() === "ownerapproved" && (
                             <PayNowButton
                                 bookingId={booking.bookingId}
+                                paymentMethod={booking.paymentMethod}
                                 onPaid={loadBooking}
                                 className="flex-1"
                             />

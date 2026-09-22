@@ -168,7 +168,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 query = query.Where(h =>
                     h.Rooms != null &&
                     h.Rooms.Any(r =>
-                        r.RoomType == roomType));
+                        r.HousingType != null && r.HousingType.HousingTypeName == roomType));
             }
 
             // -----------------------------------------------------
@@ -871,7 +871,8 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                 .Select(r => new HousingRoomDto
                 {
                     HousingRoomId = r.RoomId,
-                    RoomType = r.RoomType,
+                    HousingTypeId = r.HousingTypeId,
+                    HousingTypeName = r.HousingType != null ? r.HousingType.HousingTypeName : null,
                     Capacity = r.Capacity,
                     AvailableBeds = r.AvailableBeds,
                     Price = r.Price,

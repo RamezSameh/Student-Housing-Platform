@@ -102,9 +102,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     TotalCost = b.TotalAmount,
                     Status = b.bookingStatus.ToString(),
                     // room/housing props (mapped for housing rooms)
-                    RoomNumber = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
+                    RoomNumber = b.HousingRoom != null && b.HousingRoom.HousingType != null ? b.HousingRoom.HousingType.HousingTypeName : "",
                     Floor = 0,
-                    RoomTypeName = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
+                    RoomTypeName = b.HousingRoom != null && b.HousingRoom.HousingType != null ? b.HousingRoom.HousingType.HousingTypeName : "",
                     // Payment props
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
                     PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A",
@@ -131,9 +131,9 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     TotalCost = b.TotalAmount,
                     Status = b.bookingStatus.ToString(),
                     //housing room props
-                    RoomNumber = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
+                    RoomNumber = b.HousingRoom != null && b.HousingRoom.HousingType != null ? b.HousingRoom.HousingType.HousingTypeName : "",
                     Floor = 0,
-                    RoomTypeName = b.HousingRoom != null ? b.HousingRoom.RoomType : "",
+                    RoomTypeName = b.HousingRoom != null && b.HousingRoom.HousingType != null ? b.HousingRoom.HousingType.HousingTypeName : "",
                     // Payment props
                     PaymentMethod = b.Payment != null ? b.Payment.Method.ToString() : "N/A",
                     PaymentStatus = b.Payment != null ? b.Payment.Status.ToString() : "N/A",
@@ -232,7 +232,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     HousingId = b.HousingId,
                     HousingTitle = b.Housing != null ? b.Housing.Title : null,
                     HousingRoomId = b.HousingRoomId,
-                    RoomType = b.HousingRoom != null ? b.HousingRoom.RoomType : null,
+                    RoomType = b.HousingRoom != null && b.HousingRoom.HousingType != null ? b.HousingRoom.HousingType.HousingTypeName : null,
                     StudentId = b.UserId,
                     StudentName = b.User != null ? (b.User.FirstName + " " + b.User.LastName) : "",
                     StudentEmail = b.User != null ? b.User.Email : null,
@@ -263,7 +263,7 @@ namespace Student_Housing_Platform.RepositoryPattern.Repositories
                     HousingId = b.HousingId,
                     HousingTitle = b.Housing != null ? b.Housing.Title : null,
                     HousingRoomId = b.HousingRoomId,
-                    RoomType = b.HousingRoom != null ? b.HousingRoom.RoomType : null,
+                    RoomType = b.HousingRoom != null && b.HousingRoom.HousingType != null ? b.HousingRoom.HousingType.HousingTypeName : null,
                     StudentId = b.UserId,
                     StudentName = b.User != null ? (b.User.FirstName + " " + b.User.LastName) : "",
                     StudentEmail = b.User != null ? b.User.Email : null,
