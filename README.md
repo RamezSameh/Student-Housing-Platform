@@ -514,21 +514,54 @@ Student Housing Platform/.github/workflows/ci.yml
 
 ## 🐳 Docker
 
-The project includes a multi-stage Dockerfile based on .NET 8.
+The project includes a multi-stage Dockerfile based on .NET 8 and a `docker-compose.yml`
+that spins up the API together with SQL Server 2022.
 
-Build:
+### Quick start with Docker Compose
+
+1. Edit `docker-compose.yml` and set:
+   - `SA_PASSWORD` (also referenced in the API connection string and the db healthcheck — keep all three in sync)
+   - `FrontendOrigins` — your deployed frontend URL (comma-separated if more than one)
+   - `Paymob__*` credentials from your Paymob dashboard
+   - `Paymob__FrontendResultUrl` — e.g. `https://your-frontend-domain.com/payment/result`
+   - `JWT__Secret` (long random string), `Cloudinary__*`, `DefaultAdmin__*`
+
+2. Run:
+
+```bash
+docker compose up -d --build
+```
+
+The API will be available at `http://localhost:5000`, and EF Core applies
+pending migrations automatically on startup.
+
+> Never commit real secrets. In production, prefer your host's secret manager
+> (or a `.env` file excluded from git) over hard-coding values in the compose file.
+
+### Build the image manually
 
 ```bash
 docker build -t sakan-talaba .
+docker run -p 8080:8080 \
+  -e ConnectionStrings__DefaultConnection="Server=...;Database=...;User Id=...;Password=...;TrustServerCertificate=true" \
+  -e FrontendOrigins="https://your-frontend-domain.com" \
+  sakan-talaba
 ```
 
-Run:
+---
 
-```bash
-docker run -p 8080:80 sakan-talaba
-```
+## 🚀 Production Deployment Checklist
 
-> Database and external service configuration should be supplied through environment variables or deployment configuration.
+- [ ] **CORS**: set `FrontendOrigins` (env var or appsettings) to the deployed frontend URL(s).
+- [ ] **Frontend**: deploy the React app (Netlify / Vercel / Cloudflare Pages) with
+      `VITE_API_URL` pointing at the backend, e.g. `https://api.your-domain.com/api`.
+- [ ] **Paymob**: set `Paymob__FrontendResultUrl` to `https://your-frontend-domain.com/payment/result`,
+      and register the public `https://<backend>/api/payments/paymob/callback` and
+      `.../webhook` URLs in the Paymob dashboard (HTTPS required).
+- [ ] **Secrets**: provide `JWT__Secret`, `Paymob__*`, `Cloudinary__*`, `DefaultAdmin__*`
+      and the connection string via environment variables / secret manager — not in git.
+- [ ] **Database**: SQL Server must be reachable; migrations run automatically at startup.
+- [ ] **HTTPS**: terminate TLS at your reverse proxy / host (the container listens on plain HTTP :8080).
 
 ---
 

@@ -100,19 +100,28 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// CORS
+// CORS — local dev origins plus any extra origins from the
+// "FrontendOrigins" env var / appsettings (comma-separated), e.g. the
+// deployed frontend URL. Required in production.
+var frontendOrigins = builder.Configuration.GetValue<string>("FrontendOrigins")
+    ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
             policy.WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:5173",
-                "https://localhost:44335",
-                "http://localhost:44335",
-                "http://127.0.0.1:5173",
-                "https://127.0.0.1:5173")
+                new[]
+                {
+                    "http://localhost:5173",
+                    "https://localhost:5173",
+                    "https://localhost:44335",
+                    "http://localhost:44335",
+                    "http://127.0.0.1:5173",
+                    "https://127.0.0.1:5173"
+                }.Concat(frontendOrigins).ToArray())
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
