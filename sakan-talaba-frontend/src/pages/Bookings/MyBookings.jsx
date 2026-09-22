@@ -712,6 +712,7 @@ function MyBookings() {
                                                     {booking.status?.toLowerCase() === "ownerapproved" && (
                                                         <PayNowButton
                                                             bookingId={booking.bookingId}
+                                                            paymentMethod={booking.paymentMethod}
                                                             onPaid={() => handleBookingPaid(booking.bookingId)}
                                                         />
                                                     )}

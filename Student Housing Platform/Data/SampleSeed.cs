@@ -122,18 +122,25 @@ namespace Student_Housing_Platform.Data
             // ================================================================
             // Housing Types
             // ================================================================
-            if (!await context.HousingTypes.AnyAsync(cancellationToken))
+            // Ensured by name so existing databases pick up newly added types as well.
+            var housingTypes = new List<HousingType>
             {
-                var housingTypes = new List<HousingType>
-                {
-                    new HousingType { HousingTypeName = "Apartment", Description = "Private apartment", Capacity = 4, PricePerMonth = 2500 },
-                    new HousingType { HousingTypeName = "Room", Description = "Private student room", Capacity = 1, PricePerMonth = 1800 },
-                    new HousingType { HousingTypeName = "Shared Housing", Description = "Shared student accommodation", Capacity = 2, PricePerMonth = 1200 },
-                    new HousingType { HousingTypeName = "Studio", Description = "Compact self-contained studio", Capacity = 1, PricePerMonth = 2100 },
-                    new HousingType { HousingTypeName = "Villa", Description = "Large shared villa, several bedrooms", Capacity = 6, PricePerMonth = 3200 },
-                };
+                new HousingType { HousingTypeName = "Apartment", Description = "Private apartment", Capacity = 4, PricePerMonth = 2500 },
+                new HousingType { HousingTypeName = "Room", Description = "Private student room", Capacity = 1, PricePerMonth = 1800 },
+                new HousingType { HousingTypeName = "Shared Housing", Description = "Shared student accommodation", Capacity = 2, PricePerMonth = 1200 },
+                new HousingType { HousingTypeName = "Studio", Description = "Compact self-contained studio", Capacity = 1, PricePerMonth = 2100 },
+                new HousingType { HousingTypeName = "Villa", Description = "Large shared villa, several bedrooms", Capacity = 6, PricePerMonth = 3200 },
+                // Room layout types (referenced by HousingRoom.HousingTypeId)
+                new HousingType { HousingTypeName = "Single", Description = "Single-occupancy room", Capacity = 1, PricePerMonth = 1500 },
+                new HousingType { HousingTypeName = "Double", Description = "Double-occupancy room", Capacity = 2, PricePerMonth = 1100 },
+                new HousingType { HousingTypeName = "Triple", Description = "Triple-occupancy room", Capacity = 3, PricePerMonth = 900 },
+            };
 
-                await context.HousingTypes.AddRangeAsync(housingTypes, cancellationToken);
+            var existingTypeNames = await context.HousingTypes.Select(t => t.HousingTypeName).ToListAsync(cancellationToken);
+            var missingTypes = housingTypes.Where(t => !existingTypeNames.Contains(t.HousingTypeName)).ToList();
+            if (missingTypes.Count > 0)
+            {
+                await context.HousingTypes.AddRangeAsync(missingTypes, cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
             }
             var housingTypesByName = await context.HousingTypes.ToDictionaryAsync(t => t.HousingTypeName, cancellationToken);
@@ -226,7 +233,7 @@ namespace Student_Housing_Platform.Data
                         allRooms.Add(new HousingRoom
                         {
                             HousingId = housing.HousingId,
-                            RoomType = roomTypes[Rng.Next(roomTypes.Length)],
+                            HousingTypeId = housingTypesByName[roomTypes[Rng.Next(roomTypes.Length)]].HousingTypeId,
                             Capacity = capacity,
                             AvailableBeds = Rng.Next(0, capacity + 1),
                             Price = Math.Round(housing.Price / capacity * (0.9m + (decimal)Rng.NextDouble() * 0.3m), 2),

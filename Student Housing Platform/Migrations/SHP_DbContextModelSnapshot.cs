@@ -631,19 +631,20 @@ namespace Student_Housing_Platform.Migrations
                     b.Property<int>("HousingId")
                         .HasColumnType("int");
 
+                    b.Property<int>("HousingTypeId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("RoomType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.HasKey("RoomId");
 
                     b.HasIndex("HousingId");
+
+                    b.HasIndex("HousingTypeId");
 
                     b.ToTable("HousingRooms");
                 });
@@ -1066,7 +1067,15 @@ namespace Student_Housing_Platform.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Student_Housing_Platform.Models.HousingType", "HousingType")
+                        .WithMany("Rooms")
+                        .HasForeignKey("HousingTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Housing");
+
+                    b.Navigation("HousingType");
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.Message", b =>
@@ -1190,6 +1199,8 @@ namespace Student_Housing_Platform.Migrations
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingType", b =>
                 {
                     b.Navigation("Housings");
+
+                    b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.University", b =>

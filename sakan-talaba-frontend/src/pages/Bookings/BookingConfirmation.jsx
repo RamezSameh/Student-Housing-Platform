@@ -353,6 +353,7 @@ function BookingConfirmation() {
                                     {booking.status?.toLowerCase() === "ownerapproved" && (
                                         <PayNowButton
                                             bookingId={booking.bookingId}
+                                            paymentMethod={booking.paymentMethod}
                                             onPaid={loadBooking}
                                         />
                                     )}

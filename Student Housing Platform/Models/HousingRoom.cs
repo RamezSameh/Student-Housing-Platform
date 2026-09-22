@@ -13,8 +13,10 @@ namespace Student_Housing_Platform.Models
         [ForeignKey("HousingId")]
         public Housing Housing { get; set; }
 
-        [MaxLength(100)]
-        public string? RoomType { get; set; }
+        [Required]
+        public int HousingTypeId { get; set; }
+        [ForeignKey("HousingTypeId")]
+        public HousingType HousingType { get; set; } = null!;
 
         [Required]
         public int Capacity { get; set; }

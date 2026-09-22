@@ -2,6 +2,7 @@
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
 using Student_Housing_Platform.Services.CloudinaryService;
+using Student_Housing_Platform.Services.Payments;
 using Student_Housing_Platform.Services.TokenService;
 using Student_Housing_Platform.Data;
 using Student_Housing_Platform.Services.Distance;
@@ -37,6 +38,10 @@ builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection(Admin
 
 // bind the JWT settings from appsettings.json
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection(JWTSettings.SectionName));
+
+// bind the Paymob settings from appsettings.json
+builder.Services.Configure<PaymobSettings>(builder.Configuration.GetSection(PaymobSettings.SectionName));
+builder.Services.AddHttpClient<IPaymobService, PaymobService>();
 var jwtSettings = new JWTSettings();
 builder.Configuration.GetSection(JWTSettings.SectionName).Bind(jwtSettings);
 builder.Services.AddAuthentication(options =>
