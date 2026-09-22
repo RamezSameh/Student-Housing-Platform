@@ -1,5 +1,5 @@
 ﻿using Student_Housing_Platform.Dtos.HousingTypeDtos;
-using Student_Housing_Platform.Dtos.RoomTypeDtos;
+using Student_Housing_Platform.Dtos.HousingTypeDtos;
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 
 namespace Student_Housing_Platform.RepositoryPattern.Repositories

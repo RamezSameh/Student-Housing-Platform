@@ -1,4 +1,4 @@
-﻿namespace Student_Housing_Platform.Dtos.RoomTypeDtos
+﻿namespace Student_Housing_Platform.Dtos.HousingTypeDtos
 {
     public class CreateHousingTypeDto
     {

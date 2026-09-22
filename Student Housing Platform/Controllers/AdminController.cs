@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Student_Housing_Platform.Dtos.AccountDtos;
 using Student_Housing_Platform.Dtos.HousingDtos;
-using Student_Housing_Platform.Dtos.RoomTypeDtos;
+using Student_Housing_Platform.Dtos.HousingTypeDtos;
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
 using Student_Housing_Platform.Services.Admin;
