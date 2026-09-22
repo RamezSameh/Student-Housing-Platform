@@ -9,6 +9,6 @@
 
         // ----- بيانات مدمجة من ApplicationUser -----
         // (علشان نعرض "مين" اللي كتب التقييم)
-        public string AuthorName { get; set; }
+        public string AuthorName { get; set; } = string.Empty;
     }
 }

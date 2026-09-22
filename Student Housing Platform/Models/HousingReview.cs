@@ -11,12 +11,12 @@ namespace Student_Housing_Platform.Models
         [Required]
         public int HousingId { get; set; }
         [ForeignKey("HousingId")]
-        public Housing Housing { get; set; }
+        public Housing Housing { get; set; } = null!;
 
         [Required]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
+        public ApplicationUser User { get; set; } = null!;
 
         [Required]
         [Range(1,5)]

@@ -29,6 +29,12 @@ namespace Student_Housing_Platform.Middleware
                 return new RateLimitEntry { Count = 0 };
             });
 
+            if (entry is null)
+            {
+                await _next(context);
+                return;
+            }
+
             if (entry.Count >= _limit)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;

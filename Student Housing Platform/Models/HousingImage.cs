@@ -11,7 +11,7 @@ namespace Student_Housing_Platform.Models
         [Required]
         public int HousingId { get; set; }
         [ForeignKey("HousingId")]
-        public Housing Housing { get; set; }
+        public Housing Housing { get; set; } = null!;
 
         [Required]
         public string ImageUrl { get; set; } = string.Empty;
