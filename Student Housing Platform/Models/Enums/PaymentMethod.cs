@@ -3,6 +3,7 @@
     public enum PaymentMethod
     {
         Stripe,
-        CashOnArrival
+        CashOnArrival,
+        Paymob
     }
 }

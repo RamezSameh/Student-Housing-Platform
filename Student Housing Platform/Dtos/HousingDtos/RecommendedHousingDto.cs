@@ -8,5 +8,6 @@ namespace Student_Housing_Platform.Dtos.HousingDtos
         public double DistanceKm { get; set; }
         public decimal Price { get; set; }
         public double Rating { get; set; }
+        public string? OwnerName { get; set; }
     }
 }

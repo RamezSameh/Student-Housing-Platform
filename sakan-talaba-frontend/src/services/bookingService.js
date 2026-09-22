@@ -86,6 +86,20 @@ export const confirmPayment = async (bookingId, transactionId) => {
   return data;
 };
 
+/**
+ * Starts a real Paymob payment. The backend returns the URL the student must
+ * be redirected to (Paymob card page, or the wallet provider for mobile
+ * wallets). paymentType: "card" (default) or "wallet".
+ */
+export const initiatePaymobPayment = async (bookingId, paymentType = "card", walletNumber = null) => {
+  const { data } = await api.post("/Payments/paymob/initiate", {
+    bookingId,
+    paymentType,
+    walletNumber,
+  });
+  return data; // { paymentUrl, paymobOrderId }
+};
+
 export const cancelBooking = async (bookingId) => {
   await api.post(`/Bookings/${bookingId}/cancel`);
 };

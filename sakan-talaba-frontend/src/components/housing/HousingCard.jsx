@@ -1,4 +1,4 @@
-import { MapPin, Star, Heart, Navigation, ShieldCheck, Loader2, Map } from "lucide-react";
+import { MapPin, Star, Heart, Navigation, ShieldCheck, Loader2, Map, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
@@ -26,6 +26,7 @@ function HousingCard({ housing }) {
   const longitude = Number(housing.longitude);
   const hasCoords = Number.isFinite(latitude) && Number.isFinite(longitude) && (latitude !== 0 || longitude !== 0);
   const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
+  const ownerName = housing.ownerName || housing.owner?.name || null;
 
   const handleFavorite = async (e) => {
     e.preventDefault();
@@ -99,6 +100,13 @@ function HousingCard({ housing }) {
           <div className="mt-2 flex items-center gap-1 text-sm text-slate-500">
             <MapPin size={15} />
             <span className="line-clamp-1">{housing.city}</span>
+          </div>
+        )}
+
+        {ownerName && (
+          <div className="mt-1.5 flex items-center gap-1 text-sm text-slate-500">
+            <User size={15} />
+            <span className="line-clamp-1">Owner: {ownerName}</span>
           </div>
         )}
 

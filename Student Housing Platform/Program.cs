@@ -2,6 +2,7 @@
 using Student_Housing_Platform.RepositoryPattern.Interfaces;
 using Student_Housing_Platform.RepositoryPattern.Repositories;
 using Student_Housing_Platform.Services.CloudinaryService;
+using Student_Housing_Platform.Services.Payments;
 using Student_Housing_Platform.Services.TokenService;
 using Student_Housing_Platform.Data;
 using Student_Housing_Platform.Services.Distance;
@@ -38,6 +39,10 @@ builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection(Admin
 
 // bind the JWT settings from appsettings.json
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection(JWTSettings.SectionName));
+
+// bind the Paymob settings from appsettings.json
+builder.Services.Configure<PaymobSettings>(builder.Configuration.GetSection(PaymobSettings.SectionName));
+builder.Services.AddHttpClient<IPaymobService, PaymobService>();
 var jwtSettings = new JWTSettings();
 builder.Configuration.GetSection(JWTSettings.SectionName).Bind(jwtSettings);
 builder.Services.AddAuthentication(options =>
@@ -100,19 +105,28 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// CORS
+// CORS — local dev origins plus any extra origins from the
+// "FrontendOrigins" env var / appsettings (comma-separated), e.g. the
+// deployed frontend URL. Required in production.
+var frontendOrigins = builder.Configuration.GetValue<string>("FrontendOrigins")
+    ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
             policy.WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:5173",
-                "https://localhost:44335",
-                "http://localhost:44335",
-                "http://127.0.0.1:5173",
-                "https://127.0.0.1:5173")
+                new[]
+                {
+                    "http://localhost:5173",
+                    "https://localhost:5173",
+                    "https://localhost:44335",
+                    "http://localhost:44335",
+                    "http://127.0.0.1:5173",
+                    "https://127.0.0.1:5173"
+                }.Concat(frontendOrigins).ToArray())
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();

@@ -11,12 +11,14 @@ namespace Student_Housing_Platform.Dtos.HousingDtos
         public string City { get; set; } = string.Empty;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public string? OwnerName { get; set; }
     }
 
     public class HousingRoomDto
     {
         public int HousingRoomId { get; set; }
-        public string? RoomType { get; set; }
+        public int HousingTypeId { get; set; }
+        public string? HousingTypeName { get; set; }
         public int Capacity { get; set; }
         public int AvailableBeds { get; set; }
         public decimal Price { get; set; }
