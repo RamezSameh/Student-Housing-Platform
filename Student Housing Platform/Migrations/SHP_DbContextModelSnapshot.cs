@@ -644,13 +644,11 @@ namespace Student_Housing_Platform.Migrations
 
                     b.HasIndex("HousingId");
 
-<<<<<<< HEAD
                     b.ToTable("HousingRooms", (string)null);
-=======
+
                     b.HasIndex("HousingTypeId");
 
                     b.ToTable("HousingRooms");
->>>>>>> 220eca35dc7f1edbb22710077ba381471047e2ad
                 });
 
             modelBuilder.Entity("Student_Housing_Platform.Models.HousingType", b =>

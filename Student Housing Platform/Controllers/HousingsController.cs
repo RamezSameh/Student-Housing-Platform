@@ -136,7 +136,7 @@ namespace Student_Housing_Platform.Controllers
 
         // GET: /api/housings
         [HttpGet]
-        public Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             // temporary: reuse nearby with a very large radius from first university if exists
             return BadRequest("Use /api/housings/nearby or implement listing.");
