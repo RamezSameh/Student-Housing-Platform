@@ -2,15 +2,16 @@ services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      # CHANGE THIS to a strong password before first run
-      SA_PASSWORD: "ChangeMe_Strong_Password_123"
+      # Set SA_PASSWORD in your shell or a `.env` file (see .env.example).
+      # Falls back to the placeholder below for local trials only — never use it in production.
+      SA_PASSWORD: "${SA_PASSWORD:-ChangeMe_Strong_Password_123}"
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
     volumes:
       - mssqldata:/var/opt/mssql
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "ChangeMe_Strong_Password_123", "-Q", "SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${SA_PASSWORD:-ChangeMe_Strong_Password_123}", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -22,7 +23,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=StudentHousingPlatformDb;User Id=sa;Password=ChangeMe_Strong_Password_123;TrustServerCertificate=true
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=StudentHousingPlatformDb;User Id=sa;Password=${SA_PASSWORD:-ChangeMe_Strong_Password_123};TrustServerCertificate=true
       # Comma-separated list of allowed frontend origins (the deployed frontend URL)
       - FrontendOrigins=https://your-frontend-domain.com
       # --- Secrets: replace the placeholders with real values ---

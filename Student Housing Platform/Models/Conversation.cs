@@ -7,8 +7,8 @@ namespace Student_Housing_Platform.Models
     {
         [Key]
         public int ConversationId { get; set; }
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public ICollection<Message> Messages { get; set; }
+        public ICollection<Message> Messages { get; set; } = null!;
     }
 }

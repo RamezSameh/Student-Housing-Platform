@@ -136,15 +136,10 @@ namespace Student_Housing_Platform.Controllers
 
         // GET: /api/housings
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
-            var result = await _repo.GetAllAsync(page, pageSize);
-            var response = new Dtos.Common.ApiResponse<object>
-            {
-                Success = true,
-                Data = new { items = result.Items, page = result.Page, pageSize = result.PageSize, totalCount = result.TotalCount, totalPages = result.TotalPages }
-            };
-            return Ok(response);
+            // temporary: reuse nearby with a very large radius from first university if exists
+            return BadRequest("Use /api/housings/nearby or implement listing.");
         }
 
         // GET: /api/housings/5

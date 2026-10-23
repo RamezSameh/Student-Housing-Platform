@@ -45,13 +45,13 @@ namespace Student_Housing_Platform.Controllers
 
             var loginResponse = new LoginResponseDto
             {
-                Email = user.Email,
+                Email = user.Email ?? string.Empty,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Token = token,
                 Roles = roles
                 ,NationalId = user.NationalId
-                ,UniversityId = user.UniversityId
+                ,UniversityId = user.UniversityId ?? string.Empty
                 ,University = user.University
                 ,Mobile = user.Mobile
             };
@@ -103,7 +103,7 @@ namespace Student_Housing_Platform.Controllers
                 Token = token,
                 Roles = roles
                 ,NationalId = newUser.NationalId
-                ,UniversityId = newUser.UniversityId
+                ,UniversityId = newUser.UniversityId ?? string.Empty
                 ,University = newUser.University
                 ,Mobile = newUser.Mobile
             };

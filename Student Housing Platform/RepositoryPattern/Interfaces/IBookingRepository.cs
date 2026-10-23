@@ -7,10 +7,10 @@ namespace Student_Housing_Platform.RepositoryPattern.Interfaces
     {
         Task<Booking> CreateBookingAsync(CreateBookingDto createBookingDto,string UserId);
         Task<Booking> CreateHousingBookingAsync(CreateHousingBookingDto createHousingBookingDto, string userId);
-        Task<BookingDto> GetBookingByIdAsync(int bookingId, string userId);
+        Task<BookingDto?> GetBookingByIdAsync(int bookingId, string userId);
         Task<IEnumerable<BookingDto>> GetUserBookingsAsync(string userId);
-        Task<Booking> UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus);
-        Task<Booking> GetBookingEntityByIdAsync(int bookingId, string userId);
+        Task<Booking?> UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus);
+        Task<Booking?> GetBookingEntityByIdAsync(int bookingId, string userId);
         //Aggregate Root 
         Task ConfirmPaymentAsync(int bookingId, string userId, string transactionId);
 

@@ -53,8 +53,8 @@ namespace Student_Housing_Platform.Models
 
         // Owner (user) reference
         [Required]
-        public string OwnerId { get; set; }
-        public ApplicationUser Owner { get; set; }
+        public string OwnerId { get; set; } = string.Empty;
+        public ApplicationUser Owner { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

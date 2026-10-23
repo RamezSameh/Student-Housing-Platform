@@ -10,13 +10,13 @@ namespace Student_Housing_Platform.Models
         [Required]
         public int ConversationId { get; set; }
         [ForeignKey("ConversationId")]
-        public Conversation Conversation { get; set; }
+        public Conversation Conversation { get; set; } = null!;
         [Required]
-        public string SenderId { get; set; }
+        public string SenderId { get; set; } = string.Empty;
         [ForeignKey("SenderId")]
-        public ApplicationUser Sender { get; set; }
+        public ApplicationUser Sender { get; set; } = null!;
         [Required]
-        public string Content { get; set; }
+        public string Content { get; set; } = string.Empty;
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
     }
 }

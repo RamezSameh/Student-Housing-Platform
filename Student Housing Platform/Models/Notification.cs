@@ -8,12 +8,12 @@ namespace Student_Housing_Platform.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
+        public ApplicationUser User { get; set; } = null!;
         [Required]
         [MaxLength(200)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         [MaxLength(2000)]
         public string? Message { get; set; }
         public bool IsRead { get; set; } = false;
